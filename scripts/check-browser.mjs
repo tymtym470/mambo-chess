@@ -1,6 +1,8 @@
 import { chromium } from 'playwright';
 import { reply, startHarness } from './api-test-harness.mjs';
 
+// startHarness 会在 dist/index.html 缺失时补占位文件（并在结束时清理），
+// 因此浏览器冒烟测试不再依赖「本地已经构建过」这一前提。
 const harness = process.env.BASE_URL ? null : await startHarness((req, res) => reply(res, 404, {}));
 const base = process.env.BASE_URL || harness.base;
 let browser;
