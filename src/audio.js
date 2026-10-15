@@ -1,5 +1,7 @@
+import { assetUrl } from './mascot.js';
+
 export const MAMBO_TAUNT_LINE = '这盘棋分明就是老叟戏顽童，你一点赢我的概率都没有。';
-const MAMBO_TAUNT_AUDIO = '/audio/mambo-taunt-7-14.mp3';
+const MAMBO_TAUNT_AUDIO = assetUrl('audio/mambo-taunt-7-14.mp3');
 export const COMMENTARY_AUDIO_LIBRARY = [
   'source-2.mp3', 'source-3.mp3', 'source-4.mp3', 'source-5.mp3', 'source-9.mp3', 'source-10.mp3',
   'source-12.mp3', 'source-13.mp3', 'source-14.mp3', 'source-15.mp3', 'source-17.mp3', 'source-18.mp3',
@@ -88,7 +90,7 @@ class AudioManager {
   startMusic() {
     if (!this.enabled || !this.music) return;
     if (!this.background) {
-      this.background = this.createAudio('/audio/mambo-friday.mp3', this.volume * .12);
+      this.background = this.createAudio(assetUrl('audio/mambo-friday.mp3'), this.volume * .12);
       this.background.loop = true;
       this.background.addEventListener('timeupdate', () => {
         if (this.background && this.background.currentTime >= 30) this.background.currentTime = 0;
@@ -128,7 +130,7 @@ class AudioManager {
       const tauntPlaying = this.tauntAudio && !this.tauntAudio.paused && !this.tauntAudio.ended;
       if (!tauntPlaying) {
         this.stopRegularVoice();
-        const audio = this.createAudio(`/audio/library/${this.nextVoice(event)}`, this.volume * .72);
+        const audio = this.createAudio(assetUrl(`audio/library/${this.nextVoice(event)}`), this.volume * .72);
         this.voiceAudio = audio;
         this.lastVoice = Date.now();
         audio.addEventListener('ended', () => {
