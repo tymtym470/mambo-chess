@@ -31,13 +31,18 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
-      - name: 单元测试
-        run: npm test
-
+      # 必须先构建：单元测试不依赖 dist（harness 会补占位文件），
+      # 但浏览器冒烟测试要加载真实页面，没有 dist 就看不到棋盘。
       - name: 构建静态站点
         run: npm run build
 
-      # Vite 默认输出带下划线的目录（/assets），Jekyll 会忽略它们。
+      - name: 单元测试
+        run: npm test
+
+      - name: 浏览器冒烟测试
+        run: npm run test:browser
+
+      # Vite 输出带下划线的目录（/assets），Jekyll 会忽略它们。
       - name: 关闭 Jekyll 处理
         run: touch dist/.nojekyll
 
