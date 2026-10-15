@@ -31,6 +31,11 @@ jobs:
       - name: 安装依赖
         run: npm ci
 
+      # 浏览器冒烟测试用 Playwright 自带的 Chromium（脚本在本地会回退到系统 Edge，
+      # 但 runner 上没有 Edge，必须显式装一次）。
+      - name: 安装 Chromium
+        run: npx playwright install --with-deps chromium
+
       # 必须先构建：单元测试不依赖 dist（harness 会补占位文件），
       # 但浏览器冒烟测试要加载真实页面，没有 dist 就看不到棋盘。
       - name: 构建静态站点

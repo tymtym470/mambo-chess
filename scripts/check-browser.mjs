@@ -1,16 +1,22 @@
 import { chromium } from 'playwright';
+import { existsSync } from 'node:fs';
 import { reply, startHarness } from './api-test-harness.mjs';
 
 // startHarness 会在 dist/index.html 缺失时补占位文件（并在结束时清理），
-// 因此浏览器冒烟测试不再依赖「本地已经构建过」这一前提。
+// 因此单元测试不再依赖「本地已经构建过」这一前提。
+// 浏览器冒烟测试仍需要真实构建产物（要看到棋盘），CI 中先构建再跑。
 const harness = process.env.BASE_URL ? null : await startHarness((req, res) => reply(res, 404, {}));
 const base = process.env.BASE_URL || harness.base;
+
+// 浏览器可执行文件：优先 Playwright 自带的 Chromium（跨平台，CI 上可用），
+// 本地没装时回退到系统 Edge。Windows 上 Edge 的路径写死会在 Linux CI 上失败。
+const EDGE_WINDOWS = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+const launchOptions = existsSync(EDGE_WINDOWS) && !process.env.CI
+  ? { executablePath: EDGE_WINDOWS }
+  : {};
 let browser;
 try {
-browser = await chromium.launch({
-  headless: true,
-  executablePath: 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe',
-});
+browser = await chromium.launch({ headless: true, ...launchOptions });
 const desktop = await browser.newPage({ viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 });
 const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1 });
 
