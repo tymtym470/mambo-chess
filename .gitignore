@@ -3,3 +3,7 @@ dist/
 .env
 *.log
 test-results/
+
+# 启动器编译中间产物（.exe 本身要提交，用户下载后可直接双击）
+*.pdb
+*.obj

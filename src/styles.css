@@ -299,6 +299,9 @@ input, select { min-width: 0; }
 .page-footer > span { display: flex; align-items: center; gap: 7px; }
 .page-footer i { display: inline-block; height: 2px; width: 2px; background: #a3ae98; border-radius: 50%; }
 .footer-sparkle { color: #b9ae8e; padding-left: 9px; font-size: 14px; }
+/* 作者署名：右下角，克制不抢眼，只在悬停时略微加深。 */
+.footer-author { margin-left: 10px; padding-left: 10px; border-left: 1px solid var(--line); color: #b4bcac; letter-spacing: .14em; text-decoration: none; transition: color .18s ease; }
+.footer-author:hover { color: #7d8f6a; }
 .spin { animation: spin 1.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .full-width { width: 100%; }
@@ -552,6 +555,7 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
   .page-footer { margin-top: 29px; padding-top: 18px; padding-bottom: 22px; font-size: 6px; gap: 8px; }
   .page-footer > span { gap: 5px; }
   .footer-sparkle { padding-left: 3px; font-size: 11px; }
+  .footer-author { margin-left: 6px; padding-left: 6px; }
   .modal-body { padding: 22px; }
   .modal-heading h2 { font-size: 18px; }
   .modal-actions { gap: 8px; }

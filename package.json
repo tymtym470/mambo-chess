@@ -2,6 +2,25 @@
   "name": "mambo-chess",
   "version": "1.0.0",
   "private": true,
+  "description": "曼波棋社 · 五子棋、围棋、中国象棋、国际象棋四棋一桌的本地网页棋室 | Four board games in one local web app",
+  "author": "TYM <tymtym470@users.noreply.github.com> (https://github.com/tymtym470)",
+  "license": "MIT",
+  "homepage": "https://tymtym470.github.io/mambo-chess/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tymtym470/mambo-chess.git"
+  },
+  "keywords": [
+    "chess",
+    "gomoku",
+    "go",
+    "xiangqi",
+    "board-game",
+    "react",
+    "vite",
+    "local-first",
+    "llm"
+  ],
   "type": "module",
   "scripts": {
     "dev": "node --env-file-if-exists=.env server.mjs",
@@ -13,7 +32,9 @@
     "test:api-browser": "node scripts/check-api-browser.mjs",
     "test:models": "node --test tests/api-response.test.mjs tests/api-integration.test.mjs tests/deepseek-api.test.mjs",
     "test:lease": "node scripts/check-production-lease.mjs",
-    "test:launcher": "node scripts/check-launcher.mjs"
+    "test:launcher": "node scripts/check-launcher.mjs",
+    "build:launcher": "node scripts/build-launcher.mjs",
+    "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
     "@sabaki/go-board": "1.4.3",

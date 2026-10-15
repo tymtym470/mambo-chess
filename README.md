@@ -1,96 +1,188 @@
 # 曼波棋社 · Mambo Chess Club
 
-五子棋、围棋、中国象棋、国际象棋的本地网页应用。内置本地战术引擎、五档 AI、棋盘分析、双人对弈、音效和可选 Chat Completions API。
+**四棋一桌的本地网页棋室** —— 五子棋、围棋、中国象棋、国际象棋，开箱即玩，不需要注册、不需要联网。
 
-## 在线试玩（GitHub Pages）
+[![Deploy to GitHub Pages](https://github.com/tymtym470/mambo-chess/actions/workflows/deploy-pages.yml/badge.svg)](https://github.com/tymtym470/mambo-chess/actions/workflows/deploy-pages.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](./LICENSE)
+[![Node](https://img.shields.io/badge/Node-%E2%89%A520-brightgreen.svg)](https://nodejs.org/)
 
-静态站点：**https://tymtym470.github.io/mambo-chess/**
+**🔗 在线试玩：<https://tymtym470.github.io/mambo-chess/>**
+（在线版只有本地战术引擎；API 对弈需要后端，见下方「在线版的限制」）
 
-> ⚠️ **在线版只有本地战术引擎。**
-> 「模型 API 对弈 / AI 深度解读」需要 `server.mjs` 代理（用来保管密钥、做落子校验），
-> 纯静态托管没有后端，所以**在线版用不了 API 功能**，其余全部功能正常。
-> 想用 API 对弈，请按下面的「一键启动」在本地跑。
+**English** → [README.en.md](./README.en.md)
 
-## 一键启动
+![曼波棋社主界面](docs/screenshots/01-gomoku.png)
 
-双击项目根目录的 `启动曼波棋社.bat`：
+---
 
-- 已有同目录、同版本服务：直接打开页面；代码或构建有变化时自动重启本项目服务。
-- 没有服务：隐藏启动本地生产服务后打开页面。
-- 端口被其他程序或无法确认归属的旧进程占用：保留原进程，选择空闲端口并打开正确地址。
-- 页面关闭后：生产服务会在没有活动页面租约后自动退出。
+## 这是什么
 
-启动后打开的地址带有 `build` 版本标记。API 设置和每次请求的诊断区会显示「服务版本」，对应进程启动时的代码指纹，不会因磁盘文件被改动而冒充已更新。旧页面保留的错误不代表新请求结果，请以本次测试的版本和结束原因为准。
+一个跑在浏览器里的棋室，四种棋共用一个界面。默认使用**内置的本地战术引擎**——
+不填任何密钥、不连任何服务，双击就能下。想让它更聪明，可以接任意兼容
+OpenAI Chat Completions 的模型服务：豆包、DeepSeek、通义千问、Kimi、SiliconFlow、
+OpenRouter、Ollama 本地模型都行。
 
-停止服务时双击 `停止曼波棋社.bat`，或运行：
+一只叫**曼波**的猫会陪着你：根据局势换表情、偶尔吐槽一句、赢你的时候毫不客气。
 
-```powershell
-npm run stop
-```
+## 快速开始
 
-也可以在终端运行：
+### 方式一：双击启动（Windows，推荐给不想碰命令行的人）
+
+下载仓库后，双击根目录的 **`启动曼波棋社.exe`**。它会：
+
+- 已经在跑且版本一致 → 直接打开页面
+- 没有服务 → 后台静默启动，然后打开页面
+- 端口被别的程序占用 → 保留对方进程，自动换一个空闲端口
+- 关掉所有页面后 → 服务自己退出，不留后台进程
+
+停止服务用 **`停止曼波棋社.exe`**，或运行 `npm run stop`。
+
+> 首次运行需要机器上已装 [Node.js](https://nodejs.org/)（≥ 20）。
+
+### 方式二：命令行
 
 ```powershell
 npm install
-npm run dev
+npm run dev        # 开发模式，改代码自动热更新
+npm run build      # 构建静态产物到 dist/
+npm start          # 生产模式运行已构建的版本
 ```
 
-## API
+## 四种棋
 
-复制 `.env.example` 为 `.env`，填入服务器端模型配置即可。也可以在页面右上角配置兼容 Chat Completions 的 API。密钥不会写入浏览器存储。
+| 棋种 | 规则 |
+|---|---|
+| **五子棋** | 自由五子棋，无禁手。横、竖、斜连五子或以上即胜 |
+| **围棋** | 数子法，白贴 6.5 目。禁自杀与重复全盘局面（超级劫） |
+| **中国象棋** | 标准规则：蹩马腿、塞象眼、炮隔子吃子、九宫、将帅不照面 |
+| **国际象棋** | 标准规则：王车易位、吃过路兵、兵升变、五十回合和棋 |
 
-页面内置服务商预设：
+规则全部交给成熟的上游库处理（`chess.js`、`elephantops`、`@sabaki/go-board`、
+`gomoku-game`），本项目只做坐标归一化与结果呈现——**不自己造规则轮子**。
 
-- DeepSeek
-- OpenAI
-- Google Gemini OpenAI 兼容接口
-- 通义千问
-- Moonshot / Kimi
-- SiliconFlow
-- OpenRouter
-- Ollama 本地模型
-- 自定义 OpenAI 兼容接口
+## 功能
 
-服务商按钮只填入地址，不再预填未经验证的模型名。填写地址和密钥后，点「拉取模型」，从唯一的模型下拉栏选择上游返回的名称。程序不擅自改名，也不会因为模型名包含 V4 就切换协议。
+### 对弈
 
-点「测试落子」会使用当前棋盘和合法候选试走一步，但不会改动棋盘；终局时使用空棋盘测试。只有模型确实返回合法走法，才允许「保存并启用」。修改地址、密钥或模型会使测试结果失效，未保存的测试不改变实际对局配置。密钥刷新页面后清空，需要重新填写。
+- **双人同屏**：一台电脑两个人下，轮流落子
+- **曼波 AI**：五档难度（初见 / 入门 / 进阶 / 高手 / 大师），内置本地战术引擎
+- **选边**：执先手或后手都行，棋盘自动翻转
+- **悔棋 / 认输 / 停一手**（围棋）、**翻转棋盘**、**专注模式**
+- **落子序号**可开关，便于复盘
 
-服务端支持 Chat Completions 和 Responses。填写完整 `/responses` 地址会优先使用 Responses；填写根地址则先试 Chat Completions。仅在端点不兼容时尝试另一协议，401、429 等错误直接展示。
+### 陪练
 
-合法 ID、JSON、代码块、坐标数组以及中文描述中唯一且完整匹配的走法均可读取；多个候选、非法走法或没有最终答案时，最多请求一次纠正。思考字段不会作为落子执行。文本分析可显示，但不等于已验证落子能力。单次请求总超时为 90 秒，常规输出预算为 8192 tokens。
+- **棋盘分析**：本地启发式评估，实时给出局势指数与候选着法
+- **AI 深度解读**：让模型给出走法建议与理由（需配置 API）
+- **曼波的表情**：普通、思考、吃子、嘲讽、破防、胜利、和棋，七种状态
+- **音效与语音**：可分别开关，背景音乐只循环前 30 秒
 
-直连 `api.deepseek.com` 时，棋局请求显式关闭长思考：Chat Completions 使用 `thinking.type=disabled`，Responses 使用 `reasoning.effort=none`，不改变所选模型名。若仍遇到输出长度截断，保持关闭思考，将预算调整为 16384 tokens 后最多重试一次；这与格式纠正共用一次重试额度。仍未完成时不执行截断内容。其他服务商不附加 DeepSeek 专用参数。诊断区显示请求的思考模式、结束原因、输出上限和上游提供的实际 token 用量。
+### 可靠性
 
-失败时对局暂停，不自动换成本地 AI。棋盘错误区和设置窗口保留模型、实际端点、HTTP 状态和已脱敏的回复片段，可重试、检查配置或手动改用本地 AI。测试与纠正会调用上游，可能产生费用。本仓库的自动测试使用模拟上游，不代表任何实际服务商已验证。
+这是本项目花力气最多的地方——**模型说什么不算数，规则说了才算**。
 
-## 素材
+- 模型返回的着法**必须**通过本地规则引擎校验才会落盘；不合法的直接拒绝
+- 越界坐标、负数、纯散文、多个候选、被截断的输出，**一律不执行**
+- 首次不合法时自动纠正重试一次，仍不通过就**暂停对局并说明原因**，绝不硬塞
+- 密钥只存在服务端进程或浏览器本地，**不写进浏览器存储**；错误信息会脱敏
 
-⚠️ **重要**：仓库内的图片与音频素材是**从网上收集**的，**未取得原作者授权**，
-不在 MIT 许可证范围内。个人学习、本地运行没问题；**二次分发或商用请先替换成你有权使用的素材**。
-如果你是权利人并希望移除，请开 Issue，我们会尽快处理。详见 [ASSETS.md](./ASSETS.md)。
+<table>
+<tr>
+<td width="50%"><img src="docs/screenshots/03-xiangqi.png" alt="中国象棋"><br><sub>中国象棋 · 楚河汉界</sub></td>
+<td width="50%"><img src="docs/screenshots/04-chess.png" alt="国际象棋"><br><sub>国际象棋 · 王车易位与升变</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/02-go.png" alt="围棋"><br><sub>围棋 · 数子与提子</sub></td>
+<td width="50%"><img src="docs/screenshots/07-mobile.png" alt="移动端"><br><sub>移动端适配</sub></td>
+</tr>
+</table>
 
-哈基米曼波猫使用本地原图素材，按对局状态切换普通、思考、吃子、嘲讽、破防、胜利和和棋表情，不使用 AI 重绘，也不依赖 Tenor 网络加载。
+## 接入模型 API（可选）
 
-用户提供的 36 个允许使用的音频位于 `public/audio/library/`，背景音乐 `mambo-friday.mp3` 只循环前 30 秒。附件视频第 7–14 秒已截取为唯一保留的曼波吐槽音频 `mambo-taunt-7-14.mp3`，该片段会预加载并从 0 秒播放，普通落子语音不会抢占它。其他吐槽台词不再播放。音效、语音、背景音乐都可以单独关闭。
+打开页面右上角的「连接 API」，选一个服务商预设，填入地址与密钥，点「拉取模型」，
+从下拉栏选择上游返回的模型名，再点「测试落子」——**只有模型真的返回了合法着法，
+才允许保存启用**。
 
-## 检查
+内置预设：DeepSeek · OpenAI · Google Gemini · 通义千问 · Moonshot / Kimi ·
+SiliconFlow · OpenRouter · Ollama 本地 · 自定义 OpenAI 兼容接口。
+
+也可以在服务端配置：复制 `.env.example` 为 `.env` 并填入（密钥不会下发到浏览器）。
+
+```ini
+PORT=5176
+AI_BASE_URL=https://api.deepseek.com
+AI_MODEL=
+AI_API_KEY=
+```
+
+> 直连 `api.deepseek.com` 时，本项目会显式关闭长思考（Chat Completions 用
+> `thinking.type=disabled`，Responses 用 `reasoning.effort=none`），
+> 避免推理占满输出预算导致落子被截断——**不改你选的模型名**。
+
+### 在线版的限制
+
+GitHub Pages 是纯静态托管，**没有后端**，所以在线版：
+
+| 功能 | 在线版 | 本地运行 |
+|---|---|---|
+| 四种棋对弈 | ✅ | ✅ |
+| 本地战术引擎（五档 AI） | ✅ | ✅ |
+| 棋盘分析 / 提示 / 悔棋 / 音效 | ✅ | ✅ |
+| **模型 API 对弈 / AI 深度解读** | ❌ | ✅ |
+
+原因：API 功能靠 `server.mjs` 代理——它负责保管密钥、做落子校验。
+纯静态托管没有这层，所以这块用不了。这不是 bug，是架构取舍。
+
+## 项目结构
+
+```
+mambo-chess/
+├── 启动曼波棋社.exe      一键启动（隐藏窗口，内嵌图标）
+├── 停止曼波棋社.exe      停止服务
+├── server.mjs            本地服务：静态托管 + 租约 + API 代理
+├── server/ai-api.mjs     模型接口：双协议、纠正重试、脱敏
+├── src/
+│   ├── game.js           规则适配层（四棋种统一坐标与胜负判定）
+│   ├── App.jsx           主界面与状态管理
+│   ├── Board.jsx         棋盘渲染
+│   ├── ai.js             本地战术引擎
+│   ├── ai.worker.js      引擎 Web Worker
+│   ├── audio.js          音效、语音、背景音乐
+│   └── storage.js        本地存档与校验
+├── scripts/              启动、停止、构建启动器、截图、各类检查
+├── tests/                单元测试与 API 集成测试
+└── docs/screenshots/     README 用截图
+```
+
+## 开发与测试
 
 ```powershell
-npm run build
-npm test
-npm run test:models
-npm run test:api-browser
-npm run test:browser
-npm run test:lease
-npm run test:launcher
+npm test                 # 单元测试（54 项）
+npm run test:browser     # 浏览器冒烟测试：四棋种交互、AI 对弈、数子、设置
+npm run test:models      # 模型接口测试
+npm run test:api-browser # API 全流程：发现、试走、保存、失败暂停、重试
+npm run test:lease       # 服务租约与自动退出
+npm run test:launcher    # 启动器行为
+
+npm run build:launcher   # 重新编译 启动曼波棋社.exe（需 .NET Framework）
+npm run screenshots      # 重新生成 docs/screenshots/
 ```
 
-## GitHub
-
-源码、启动脚本、音效和素材说明都在本目录中，生产构建使用 `npm run build`。
-
 推送到 `main` 会由 [`.github/workflows/deploy-pages.yml`](.github/workflows/deploy-pages.yml)
-自动跑测试、构建并发布到 GitHub Pages（需在仓库 Settings → Pages 把 Source 设为
-「GitHub Actions」）。构建使用相对路径（`base: './'`），因此可以部署在任意子目录。
+自动跑测试、构建并发布到 GitHub Pages。
 
-许可：[MIT](./LICENSE)（仅覆盖源代码）。素材授权见 [ASSETS.md](./ASSETS.md)。
+## 素材授权
+
+⚠️ **仓库内的图片与音频是从网上收集的，未取得原作者授权，不在 MIT 许可证范围内。**
+个人学习、本地运行没问题；**二次分发或商用请先替换成你有权使用的素材**。
+如果你是权利人并希望移除，请开 Issue，会尽快处理。详见 [ASSETS.md](./ASSETS.md)。
+
+## 许可
+
+源代码采用 [MIT 许可证](./LICENSE)。素材不在其覆盖范围内，见上。
+
+## 作者
+
+**TYM** · GitHub [@tymtym470](https://github.com/tymtym470)
+
+四棋一桌，落子有声。

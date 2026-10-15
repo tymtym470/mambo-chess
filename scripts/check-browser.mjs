@@ -42,10 +42,10 @@ await assert(mascotSrc && !mascotSrc.includes('CYOocz'), 'stale Tenor mascot URL
 await assert(await desktop.locator('.taunt-panel').count() === 1, 'dynamic taunt panel is missing');
 await assert(await desktop.locator('.cat-gallery').count() === 0, 'removed cat gallery is still mounted');
 await assert((await desktop.locator('.taunt-panel-image img').getAttribute('src'))?.includes('/mambo/mambo-'), 'taunt panel is not using a local mascot asset');
-// 图标地址可能是 /mambo-icon.svg（base 为 /）或 ./mambo-icon.svg（base 为相对路径，
-// 用于 GitHub Pages 等子目录部署）。只校验它指向本地图标，不写死前缀。
+// 图标地址可能是 ./mambo-icon.ico（相对路径，用于子目录部署）或 /mambo-icon.ico。
+// 只校验它指向本地图标，不写死前缀。
 const iconHref = await desktop.locator('link[rel="icon"]').first().getAttribute('href');
-await assert(/^(?:\.\/|\/)mambo-icon\.svg$/.test(iconHref || ''), `local app icon is missing (href=${iconHref})`);
+await assert(/^(?:\.\/|\/)mambo-icon\.ico$/.test(iconHref || ''), `local app icon is missing (href=${iconHref})`);
 await assert((await desktop.request.get(`${base}/audio/mambo-friday.mp3`)).ok(), 'background music asset is missing');
 await assert((await desktop.request.get(`${base}/audio/mambo-taunt-7-14.mp3`)).ok(), '7-14 second taunt audio asset is missing');
 for (let index = 1; index <= 14; index += 1) {
