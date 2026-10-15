@@ -1,0 +1,37 @@
+MIT License
+
+Copyright (c) 2026 tymtym470
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+---
+
+## 素材授权说明 / Asset Licensing
+
+MIT 许可证仅覆盖本仓库的**源代码**。
+
+The MIT license above covers the **source code** of this repository only.
+
+仓库内的图片与音频素材（`public/mambo/`、`public/audio/`）为用户提供的第三方素材，
+其授权情况见 [ASSETS.md](./ASSETS.md)，**不在 MIT 许可范围内**。
+如需再分发这些素材，请自行确认其原始授权。
+
+Third-party image and audio assets under `public/mambo/` and `public/audio/` are
+user-provided material documented in [ASSETS.md](./ASSETS.md) and are **not**
+covered by the MIT license. Verify their original licensing before redistributing.
