@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Flag,
+  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Flag, Github,
   Lightbulb, LoaderCircle, Maximize2, Minimize2, MoreHorizontal, PlugZap, Plus, RefreshCw,
   RotateCcw, RotateCw, Settings2, ShieldCheck, SkipForward, Sparkles, Swords, Users, Volume2, VolumeX, X,
 } from 'lucide-react';
@@ -496,7 +496,7 @@ export default function App() {
         <div className="sound-strip"><span className="sound-strip-icon"><AudioLines size={18}/></span><div><strong>曼波声音</strong><small>{settings.enabled && settings.voice ? '语音、评论与棋局音效已启用' : '安静下棋，也很好'}</small></div><div className="sound-strip-controls"><Toggle value={settings.music} label="曼波背景音乐" onChange={v => setting('music', v)}/><Toggle value={settings.enabled && settings.voice} label="曼波语音开关" onChange={v => { setting('voice', v); if (v) setting('enabled', true); }}/></div></div>
       </aside>
     </main>
-    <footer className="page-footer"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。<span className="footer-sparkle">✦</span><a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · GitHub">TYM</a></span></footer>
+    <footer className="page-footer"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。{/* 作者署名：右下角可点击标签，点击跳转 GitHub 主页。 */}<a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · 点击打开 GitHub 主页"><Github size={15} aria-hidden="true"/>作者 TYM</a></span></footer>
     <div className="toast-host">{toast && <div role="status" className="toast"><span>{toast}</span><button aria-label="关闭提示" onClick={() => setToast('')}><X size={14}/></button></div>}</div>
     {modal === 'api' && <ApiModal api={api} serverInfo={serverInfo} lastError={apiError} lastDetails={apiDetails}
       testPosition={{ position: match.summary(), legal: match.legalMoves().map(move => ({ id: move.id, label: move.label })) }}
