@@ -1,15 +1,41 @@
-# Asset Credits
+# Asset Credits · 素材来源与授权声明
 
-All mascot images are local copies of the user-provided original meme material. The app does not generate, redraw, or fetch the cat from a remote CDN:
+> **请先读这一段。**
+>
+> 本目录下的图片与音频素材**均从互联网收集**，仅用于个人学习与兴趣项目。
+> **本项目未取得任何原始作者或权利人的授权，也不主张对它们拥有任何权利。**
+> 这些素材**不在本仓库的 MIT 许可证覆盖范围内**（见 [LICENSE](./LICENSE)）。
 
-- State images: `public/mambo/mambo-01.png` through `public/mambo/mambo-14.png`
-- App fallback icon: `public/mambo-icon.svg`
-- Background music: `public/audio/mambo-friday.mp3` (the player loops only the first 30 seconds)
-- Taunt clip: `public/audio/mambo-taunt-7-14.mp3` (extracted from the supplied video, source range 00:07–00:14)
-- Allowed voice/effect library: `public/audio/library/`
+## ⚠️ 授权状态
 
-The voice/effect files were copied from the user-provided archive:
-`C:\Users\edu13\Desktop\开源文件.zip`.
+| 素材 | 来源 | 授权状态 |
+|---|---|---|
+| `public/mambo/mambo-01.png` ~ `mambo-14.png` | 网络收集的"哈基米曼波猫"表情图 | **未获授权**，版权归原作者 |
+| `public/audio/mambo-friday.mp3` | 网络收集，播放时只循环前 30 秒 | **未获授权** |
+| `public/audio/mambo-taunt-7-14.mp3` | 从网络视频 00:07–00:14 截取 | **未获授权** |
+| `public/audio/library/source-*.mp3`（36 个） | 网络收集的音频素材包 | **未获授权** |
+| `public/audio/voice-*.mp3`（63 个） | 同上，供本地音效使用 | **未获授权** |
+| `public/mambo-icon.svg` | 本项目自绘 | 随 MIT 许可证 |
 
-The excluded source numbers are intentionally omitted from `public/audio/library/`:
-`1, 6, 16, 19, 25, 31, 32, 33, 34, 35, 36, 38, 39, 40, 41, 49, 50, 52, 53, 54, 57, 105, 10002, 10500, 10501, 10502, 10503`.
+## 权利人通知 / Takedown
+
+如果你是上述任一素材的权利人，**不希望它们出现在本仓库中**：
+
+请开一个 Issue，或通过 GitHub 联系仓库维护者，注明素材文件名。
+**我们会在收到通知后尽快移除相应文件**，无需任何额外流程。
+
+We will remove any asset promptly upon request from its rights holder.
+Please open an issue naming the file.
+
+## 使用建议
+
+- **个人学习、本地运行**：没问题，这也是本项目的目的。
+- **二次分发、商用、公开部署**：请**先自行替换为你有权使用的素材**，或取得原作者授权。
+  代码本身（MIT）随便用，出问题的只会是这些素材。
+
+## 技术说明
+
+- 应用不生成、不重绘任何表情图，也不从远程 CDN 拉取；全部为本地副本。
+- 表情按对局状态切换：普通、思考、吃子、嘲讽、破防、胜利、和棋。
+- 背景音乐 `mambo-friday.mp3` 只循环前 30 秒。
+- 普通落子语音不会抢占曼波吐槽音频；音效、语音、背景音乐都可单独关闭。
