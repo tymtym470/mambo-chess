@@ -159,6 +159,44 @@ try {
   await mobile.screenshot({ path: path.join(outDir, '07-mobile.png'), fullPage: true });
   console.log('  ✓ 07-mobile.png');
 
+  // 8. 深色模式：同一局面、同一视角，只切换主题，便于与浅色逐点对照
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('[data-testid="board"]');
+  await page.locator('.game-option:has-text("五子棋")').click();
+  await page.locator('.mode-switch button:has-text("双人")').click();
+  for (const cell of ['7,7', '8,8', '7,8', '8,7', '7,9', '8,6', '6,7', '9,8', '7,6', '8,9']) {
+    await page.locator(`[data-cell="${cell}"]`).click();
+    await page.waitForTimeout(120);
+  }
+  await page.locator('[aria-label="偏好设置"]').click();
+  await page.waitForTimeout(400);
+  await page.locator('.theme-switch button:has-text("深色")').click();
+  await page.waitForTimeout(700);
+  await page.screenshot({ path: path.join(outDir, '06b-settings-dark.png'), fullPage: false });
+  console.log('  ✓ 06b-settings-dark.png');
+  await page.locator('dialog [aria-label="关闭"]').click();
+  await page.waitForTimeout(900);
+  await shoot(page, '08-dark.png');
+  // 中国象棋的深色版（棋子是白底红字，深色下最需要确认可读性）
+  await page.evaluate(() => localStorage.clear());
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('[data-testid="board"]');
+  await page.locator('.game-option:has-text("中国象棋")').click();
+  await page.locator('.mode-switch button:has-text("双人")').click();
+  for (const [from, to] of [[70, 67], [19, 46], [82, 65], [1, 28], [81, 72], [3, 30], [58, 49]]) {
+    await page.locator('.board-cell').nth(from).click();
+    await page.locator('.board-cell').nth(to).click();
+    await page.waitForTimeout(200);
+  }
+  await page.locator('[aria-label="偏好设置"]').click();
+  await page.waitForTimeout(400);
+  await page.locator('.theme-switch button:has-text("深色")').click();
+  await page.waitForTimeout(700);
+  await page.locator('dialog [aria-label="关闭"]').click();
+  await settle(page, 1200);
+  await shoot(page, '09-dark-xiangqi.png');
+
   console.log('\n截图完成，输出目录：docs/screenshots/');
 } finally {
   clearInterval(lease);

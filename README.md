@@ -77,6 +77,14 @@ npm start          # 生产模式运行已构建的版本
 - **曼波的表情**：普通、思考、吃子、嘲讽、破防、胜利、和棋，七种状态
 - **音效与语音**：可分别开关，背景音乐只循环前 30 秒
 
+### 外观
+
+- **主题三选一**：浅色 / 深色 / 跟随系统（设置 → 外观主题）。
+  深色模式正文对比度 14:1，高过 WCAG AAA 要求的 7:1
+- **光感折射**：跟随鼠标的光效，可关闭
+- **专注模式**：收起两侧面板，只留棋盘
+- **响应式**：桌面三栏、窄屏自动堆叠，390px 宽的手机也能下
+
 ### 可靠性
 
 这是本项目花力气最多的地方——**模型说什么不算数，规则说了才算**。
@@ -94,6 +102,10 @@ npm start          # 生产模式运行已构建的版本
 <tr>
 <td width="50%"><img src="docs/screenshots/02-go.png" alt="围棋"><br><sub>围棋 · 数子与提子</sub></td>
 <td width="50%"><img src="docs/screenshots/07-mobile.png" alt="移动端"><br><sub>移动端适配</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/08-dark.png" alt="深色模式"><br><sub>深色模式 · 五子棋</sub></td>
+<td width="50%"><img src="docs/screenshots/09-dark-xiangqi.png" alt="深色模式下的中国象棋"><br><sub>深色模式 · 中国象棋</sub></td>
 </tr>
 </table>
 

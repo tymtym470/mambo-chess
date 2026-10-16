@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
   AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Flag, Github,
-  Lightbulb, LoaderCircle, Maximize2, Minimize2, MoreHorizontal, PlugZap, Plus, RefreshCw,
-  RotateCcw, RotateCw, Settings2, ShieldCheck, SkipForward, Sparkles, Swords, Users, Volume2, VolumeX, X,
+  Lightbulb, LoaderCircle, Maximize2, Minimize2, MonitorSmartphone, Moon, MoreHorizontal, PlugZap, Plus,
+  RefreshCw, RotateCcw, RotateCw, Settings2, ShieldCheck, SkipForward, Sparkles, Sun, Swords, Users,
+  Volume2, VolumeX, X,
 } from 'lucide-react';
 import Board, { GameGlyph } from './Board.jsx';
 import { advance, CHESS_GLYPHS, freshGame, GAMES, LEVELS, Match, sideName, undo } from './game.js';
@@ -13,6 +14,7 @@ import { MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_SOURCE, MAMBO_CAT_VARIANTS } from './
 const DEFAULT_SETTINGS = {
   mode: 'ai', level: 3, side: 1, provider: 'local', enabled: true, voice: true, volume: .55,
   music: true, numbers: false, autoAnalyze: true, refraction: true,
+  theme: 'system',   // 'system' 跟随系统 | 'light' | 'dark'
 };
 const DEFAULT_API = { baseUrl: 'https://api.deepseek.com', model: '', key: '' };
 const API_PRESETS = [
@@ -244,6 +246,13 @@ export default function App() {
     apiController.current?.abort(); setApiBusy(false); setRemoteAnalysis(null);
   }, [api]);
   useEffect(() => { writeStorage('mambo-settings', settings); sound.configure(settings); }, [settings]);
+  // 主题：把选择写到 <html data-theme>，CSS 侧据此切换配色。
+  // 'system' 时不写属性，交给 prefers-color-scheme 决定。
+  useEffect(() => {
+    const root = document.documentElement;
+    if (settings.theme === 'dark' || settings.theme === 'light') root.dataset.theme = settings.theme;
+    else delete root.dataset.theme;
+  }, [settings.theme]);
   useEffect(() => {
     const token = encodeURIComponent(leaseToken.current);
     const ping = () => fetch(`/api/lease?token=${token}`, { method: 'PUT', cache: 'no-store' }).catch(() => {});
@@ -509,6 +518,14 @@ export default function App() {
       <div className="setting-row"><div><AudioLines size={18}/><span>曼波背景音乐</span></div><Toggle label="曼波背景音乐" value={settings.music} onChange={v => setting('music', v)}/></div>
       <div className="setting-row"><div><AudioLines size={18}/><span>曼波语音</span></div><Toggle label="曼波语音" value={settings.voice} onChange={v => setting('voice', v)}/></div>
       <div className="setting-row"><label htmlFor="volume">音量</label><div className="volume-control"><input id="volume" type="range" min="0" max="1" step=".05" value={settings.volume} onChange={e => setting('volume', Number(e.target.value))}/><span>{Math.round(settings.volume * 100)}%</span></div></div>
+      <div className="setting-row theme-row"><div><Moon size={18}/><span>外观主题</span></div>
+        <div className="segmented theme-switch" role="group" aria-label="外观主题">
+          {[['system', '跟随系统', MonitorSmartphone], ['light', '浅色', Sun], ['dark', '深色', Moon]].map(([value, label, Icon]) => (
+            <button key={value} className={settings.theme === value ? 'active' : ''} aria-pressed={settings.theme === value}
+              title={label} onClick={() => setting('theme', value)}><Icon size={14}/>{label}</button>
+          ))}
+        </div>
+      </div>
       <div className="setting-row"><div><Sparkles size={18}/><span>光感折射</span></div><Toggle label="光感折射" value={settings.refraction} onChange={v => setting('refraction', v)}/></div>
       <div className="setting-row"><div><BarChart3 size={18}/><span>自动本地分析</span></div><Toggle label="自动本地分析" value={settings.autoAnalyze} onChange={v => setting('autoAnalyze', v)}/></div>
       <div className="setting-row"><div><BarChart3 size={18}/><span>显示落子序号</span></div><Toggle label="显示落子序号" value={settings.numbers} onChange={v => setting('numbers', v)}/></div>

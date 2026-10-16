@@ -118,6 +118,54 @@ await refraction.click();
 await assert(!((await desktop.locator('.app-shell').getAttribute('class')) || '').includes('refractive'), 'refraction switch did not turn off');
 await refraction.click();
 await assert(((await desktop.locator('.app-shell').getAttribute('class')) || '').includes('refractive'), 'refraction switch did not turn on');
+
+// 深色模式：切换后 <html data-theme> 与配色必须真的改变（不只是按钮高亮）。
+const readTheme = () => desktop.evaluate(() => ({
+  attr: document.documentElement.dataset.theme ?? null,
+  scheme: getComputedStyle(document.documentElement).colorScheme,
+  bg: getComputedStyle(document.body).backgroundColor,
+}));
+const themeSwitch = desktop.locator('.theme-switch');
+await assert(await themeSwitch.count() === 1, 'theme switch is missing from settings');
+
+await themeSwitch.locator('button:has-text("深色")').click();
+await desktop.waitForTimeout(300);
+const dark = await readTheme();
+await assert(dark.attr === 'dark', `dark theme did not set data-theme (got ${dark.attr})`);
+await assert(dark.scheme === 'dark', `dark theme did not set color-scheme (got ${dark.scheme})`);
+await assert(dark.bg === 'rgb(18, 23, 26)', `dark theme background is wrong (got ${dark.bg})`);
+
+await themeSwitch.locator('button:has-text("浅色")').click();
+await desktop.waitForTimeout(300);
+const light = await readTheme();
+await assert(light.attr === 'light', `light theme did not set data-theme (got ${light.attr})`);
+await assert(light.bg !== dark.bg, 'switching back to light did not change the background');
+
+// 跟随系统：移除 data-theme，交回 prefers-color-scheme
+await themeSwitch.locator('button:has-text("跟随系统")').click();
+await desktop.waitForTimeout(300);
+const system = await readTheme();
+await assert(system.attr === null, `system theme should remove data-theme (got ${system.attr})`);
+
+// 深色下作者署名仍要可见（深色胶囊），不能被背景吞掉
+await themeSwitch.locator('button:has-text("深色")').click();
+await desktop.waitForTimeout(300);
+const authorContrast = await desktop.locator('.footer-author').evaluate(el => {
+  const lum = c => {
+    const [r, g, b] = c.match(/\d+/g).slice(0, 3).map(Number).map(v => {
+      v /= 255; return v <= 0.03928 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
+    });
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b;
+  };
+  const cs = getComputedStyle(el);
+  const a = lum(cs.color), b = lum(cs.backgroundColor);
+  return (Math.max(a, b) + 0.05) / (Math.min(a, b) + 0.05);
+});
+await assert(authorContrast >= 4.5, `author credit lacks contrast in dark mode (ratio=${authorContrast.toFixed(2)})`);
+
+// 收尾：回到浅色，避免影响后续断言
+await themeSwitch.locator('button:has-text("浅色")').click();
+await desktop.waitForTimeout(200);
 await desktop.locator('dialog [aria-label="关闭"]').click();
 
 await desktop.evaluate(() => localStorage.clear());

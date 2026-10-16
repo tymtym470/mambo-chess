@@ -31,7 +31,8 @@ class AudioManager {
   background = null;
   voiceAudio = null;
   tauntAudio = null;
-  voiceIndex = 0;
+  // 每个事件类型各自的播放游标，避免不同类型互相打乱顺序
+  voiceCursor = {};
   lastVoice = 0;
   nextCommentAt = 0;
   configure({ enabled, voice, music = true, volume }) {
@@ -102,10 +103,14 @@ class AudioManager {
   stopMusic() {
     this.stopAudio(this.background);
   }
-  nextVoice() {
-    const file = COMMENTARY_AUDIO_LIBRARY[this.voiceIndex % COMMENTARY_AUDIO_LIBRARY.length];
-    this.voiceIndex++;
-    return file;
+  nextVoice(event = 'move') {
+    // 按事件各自轮换。VOICES 为每类事件划分了专门的片段，但早先这里
+    // 只用一个全局 voiceIndex 顺序遍历整个音频库：event 参数被忽略，
+    // VOICES 的分组也完全失效（落子可能播到「胜利」那句，吃子可能播到「开始」那句）。
+    const list = VOICES[event] || VOICES.move;
+    const index = this.voiceCursor[event] ?? 0;
+    this.voiceCursor[event] = (index + 1) % list.length;
+    return list[index];
   }
   play(event = 'move', forceVoice = false) {
     if (!this.enabled) return;

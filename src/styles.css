@@ -576,3 +576,242 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* 主题选择器：设置面板里的一行三选一控件 */
+.theme-row { align-items: center; }
+.theme-switch { height: 34px; padding: 3px; gap: 2px; }
+.theme-switch button { padding: 0 9px; font-size: 10px; gap: 4px; }
+@media (max-width: 740px) {
+  .theme-row { flex-direction: column; align-items: stretch; gap: 9px; }
+  .theme-switch { height: 36px; }
+  .theme-switch button { font-size: 11px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   深色模式
+   ───────────────────────────────────────────────────────────────────────────
+   本文件的配色大多是写死的十六进制值（270 种），改造成变量工作量与风险都很大。
+   这里采用「追加覆盖块」：在文件末尾按选择器逐组覆盖，原有规则一行不动，
+   删掉整块即可完全回到浅色，便于回退。
+
+   触发方式（html 元素属性，由 App 写入）：
+     data-theme="dark"   强制深色
+     data-theme="light"  强制浅色
+     无属性              跟随系统 prefers-color-scheme
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  /* 主题相关的语义色，浅色为默认值 */
+  --page-bg: #f0f4ef;
+  --surface: #fff;
+  --surface-soft: #f7faf5;
+  --text: #33453d;
+  --muted: #8a978f;
+  --green: #577c68;
+  --coral: #cb806b;
+  --line: rgba(98, 126, 108, .14);
+  color-scheme: light;
+}
+
+/* 深色配色：把上面的语义色换成夜间值，并给浏览器原生控件正确的配色。
+   surface 系列在深色下必须是「比背景更亮」的深色，才能保持原来的层次感。 */
+:root[data-theme="dark"] {
+  --page-bg: #12171a;
+  --surface: #1c2327;
+  --surface-soft: #191f23;
+  --text: #dde5e0;
+  --muted: #8f9d97;
+  --green: #7fae92;
+  --coral: #e09a84;
+  --line: rgba(150, 178, 162, .16);
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page-bg: #12171a;
+    --surface: #1c2327;
+    --surface-soft: #191f23;
+    --text: #dde5e0;
+    --muted: #8f9d97;
+    --green: #7fae92;
+    --coral: #e09a84;
+    --line: rgba(150, 178, 162, .16);
+    color-scheme: dark;
+  }
+}
+
+/* 用语义色接管 :root 自身的文字与底色（原规则写死在 :root 上）。 */
+:root[data-theme="dark"] { color: var(--text); background: var(--page-bg); }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) { color: var(--text); background: var(--page-bg); }
+}
+
+/* ── 深色下的逐组覆盖 ─────────────────────────────────────────────────────
+   选择器统一带 [data-theme="dark"]，特异性高于原规则，确保生效。 */
+
+/* 页面底色与主容器 */
+[data-theme="dark"] body,
+[data-theme="dark"] .app-shell { background: var(--page-bg); color: var(--text); }
+
+/* 顶栏、侧栏、页脚等面板 */
+[data-theme="dark"] .topbar,
+[data-theme="dark"] .left-sidebar,
+[data-theme="dark"] .right-sidebar,
+[data-theme="dark"] .page-footer,
+[data-theme="dark"] .workspace-heading { color: var(--text); border-color: var(--line); }
+
+/* 卡片类表面：白色卡片 → 深灰卡片 */
+[data-theme="dark"] .game-option,
+[data-theme="dark"] .taunt-panel,
+[data-theme="dark"] .analyst-intro,
+[data-theme="dark"] .analysis-content,
+[data-theme="dark"] .panel-tabs,
+[data-theme="dark"] .sound-strip,
+[data-theme="dark"] .api-error-panel,
+[data-theme="dark"] .modal-body,
+[data-theme="dark"] .candidate,
+[data-theme="dark"] .engine-options button,
+[data-theme="dark"] .board-menu button {
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* 次级表面与输入控件 */
+[data-theme="dark"] .game-option:hover,
+[data-theme="dark"] .candidate:hover,
+[data-theme="dark"] .board-menu button:hover,
+[data-theme="dark"] .engine-options button:hover,
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea {
+  background: var(--surface-soft);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+[data-theme="dark"] input::placeholder { color: var(--muted); }
+
+/* 文本层级 */
+[data-theme="dark"] h1,
+[data-theme="dark"] h2,
+[data-theme="dark"] h3,
+[data-theme="dark"] strong,
+[data-theme="dark"] .evaluation-title strong,
+[data-theme="dark"] .game-label strong { color: var(--text); }
+
+[data-theme="dark"] small,
+[data-theme="dark"] .micro-text,
+[data-theme="dark"] .muted,
+[data-theme="dark"] .no-candidates,
+[data-theme="dark"] .sidebar-bottom p { color: var(--muted); }
+
+/* 分隔线与描边 */
+[data-theme="dark"] .sidebar-separator,
+[data-theme="dark"] .header-divider,
+[data-theme="dark"] .board-heading,
+[data-theme="dark"] .setting-row,
+[data-theme="dark"] .sound-strip,
+[data-theme="dark"] .player-row { border-color: var(--line); }
+
+/* 棋盘面板：原来是一整块浅色玻璃，深色下改为深色玻璃 */
+[data-theme="dark"] .board-glass {
+  background: linear-gradient(150deg, #232b30 0%, #1a2125 55%, #202a2d 100%);
+  box-shadow: 0 22px 48px -28px rgba(0, 0, 0, .85), inset 0 1px 0 rgba(255, 255, 255, .05);
+}
+[data-theme="dark"] .board-glass::after { border-color: rgba(255, 255, 255, .07); }
+[data-theme="dark"] .board-surface { background: #1e2629; }
+[data-theme="dark"] .board-cell { color: #b9c6bf; }
+[data-theme="dark"] .board-cell:hover { background: rgba(255, 255, 255, .06); }
+[data-theme="dark"] .grid-line { stroke: #3a464a; }
+[data-theme="dark"] .coordinate { color: #7c8b85; }
+
+/* 按钮：主要按钮在深色下提亮，次级按钮跟随表面色 */
+[data-theme="dark"] .primary-button { background: #3f6b52; color: #eaf3ec; }
+[data-theme="dark"] .primary-button:hover { background: #4a7c60; }
+[data-theme="dark"] .secondary-button { background: var(--surface-soft); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .secondary-button:hover { background: #232c31; }
+[data-theme="dark"] .text-button { color: var(--green); }
+[data-theme="dark"] .icon-button { color: var(--muted); }
+[data-theme="dark"] .icon-button:hover { background: rgba(255, 255, 255, .07); color: var(--text); }
+[data-theme="dark"] .segmented,
+[data-theme="dark"] .difficulty-control { background: var(--surface-soft); border-color: var(--line); }
+[data-theme="dark"] .segmented button.active,
+[data-theme="dark"] .difficulty-control button.active { background: #2c4a3a; color: #dff0e4; }
+
+/* 弹窗遮罩与对话框 */
+[data-theme="dark"] .modal-backdrop { background: rgba(0, 0, 0, .62); }
+[data-theme="dark"] dialog { background: var(--surface); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .modal-heading { border-color: var(--line); }
+
+/* 提示条与结果横幅 */
+[data-theme="dark"] .toast { background: #2a3338; color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .result-banner {
+  background: rgba(34, 48, 40, .92);
+  border-color: rgba(127, 174, 146, .3);
+  color: #bfe0cb;
+}
+[data-theme="dark"] .result-banner > span { color: var(--muted); }
+
+/* 数子条 */
+[data-theme="dark"] .scoring-bar { background: var(--surface); border-color: var(--line); color: var(--text); }
+
+/* 作者署名：深色下改用浅色胶囊，保持可见度 */
+[data-theme="dark"] .footer-author { color: #bcd9c6; background: #1f2a24; border-color: #33473b; }
+[data-theme="dark"] .footer-author:hover { color: #d8ecdf; background: #26332c; border-color: #43594b; }
+
+/* API 状态按钮 */
+[data-theme="dark"] .api-status { background: var(--surface-soft); color: var(--text); border-color: var(--line); }
+[data-theme="dark"] .api-status.connected { color: #9fd0b1; }
+[data-theme="dark"] .api-status.error { color: #eaa38f; }
+
+/* 分析条与候选着法 */
+[data-theme="dark"] .evaluation-bar { background: #2a3338; }
+[data-theme="dark"] .analysis-note { background: var(--surface-soft); border-color: var(--line); }
+[data-theme="dark"] .mini-stone.white { background: #cfd8d3; }
+
+/* 滚动条（Chromium） */
+[data-theme="dark"] ::-webkit-scrollbar { width: 10px; height: 10px; }
+[data-theme="dark"] ::-webkit-scrollbar-track { background: #171d20; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb { background: #35403f; border-radius: 6px; }
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover { background: #445150; }
+
+/* ── 浅色残留修补 ─────────────────────────────────────────────────────────
+   以下元素原样式用了 #fff 系半透明或浅色渐变，深色下会露出白色块。 */
+
+/* 「AI 深度解读」按钮：原来是 #fff6 底 + 浅色描边 */
+[data-theme="dark"] .api-analyze-button { background: var(--surface-soft); border-color: var(--line); color: var(--text); }
+[data-theme="dark"] .api-analyze-button:hover:not(:disabled) { background: #26313a; }
+
+/* 顶部曼波提示筐：原来是横向浅色渐变 + 浅色高光 */
+[data-theme="dark"] .taunt-panel {
+  background: linear-gradient(100deg, #222a2c 0%, #1d2528 60%, #212a2b 100%);
+  border-color: var(--line);
+}
+[data-theme="dark"] .taunt-panel::before { background: linear-gradient(108deg, rgba(255, 255, 255, .05), transparent 70%); }
+[data-theme="dark"] .taunt-panel-copy > span { color: #b39a80; }
+[data-theme="dark"] .taunt-panel-copy strong { color: #cfe0d4; }
+[data-theme="dark"] .taunt-panel-copy small { color: var(--muted); }
+[data-theme="dark"] .taunt-panel.is-active { border-color: #5d4a42; box-shadow: 0 9px 24px rgba(0, 0, 0, .45); }
+[data-theme="dark"] .taunt-panel.is-active .taunt-panel-copy strong { color: #e8ab93; }
+
+/* 棋种缩略图：原来是 #e0e8e1 浅底，深色下是一块白 */
+[data-theme="dark"] .game-thumb { background: #26302f; border-color: var(--line); color: #b6c6bd; }
+
+/* 棋盘工具条：原来是半透明白 */
+[data-theme="dark"] .board-toolbar { background: rgba(255, 255, 255, .035); border-color: var(--line); }
+[data-theme="dark"] .board-turn-status { color: #9aab9f; }
+
+/* 分析面板页签 */
+[data-theme="dark"] .panel-tabs button { color: var(--muted); }
+[data-theme="dark"] .panel-tabs button.active { color: #9ccfae; }
+[data-theme="dark"] .panel-tabs button.active::after { background: #6f9d80; }
+[data-theme="dark"] .panel-tabs button > span { background: rgba(255, 255, 255, .07); color: var(--muted); }
+
+/* 其余零散浅色元素 */
+[data-theme="dark"] .icon-button { color: var(--muted); }
+[data-theme="dark"] .tiny-badge { background: rgba(255, 255, 255, .08); }
+[data-theme="dark"] .stone-sample.white { background: #d3dcd7; }
+[data-theme="dark"] .brand small,
+[data-theme="dark"] .eyebrow { color: var(--muted); }

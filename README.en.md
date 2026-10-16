@@ -80,6 +80,14 @@ reinvent rule engines.
 - **Mambo's moods**: seven states — idle, thinking, capture, taunt, panic, win, draw
 - **Sound and voice**, each switchable; background music loops only its first 30 seconds
 
+### Appearance
+
+- **Three-way theme**: Light / Dark / Follow system (Settings → Appearance).
+  Dark mode text contrast is 14:1, above the 7:1 WCAG AAA requirement
+- **Glass refraction**: a light effect that follows the cursor, can be turned off
+- **Focus mode**: collapses both side panels, leaving only the board
+- **Responsive**: three columns on desktop, stacks on narrow screens, usable down to 390px
+
 ### Reliability — where most of the effort went
 
 **What the model says does not count. Only the rules count.**
@@ -100,6 +108,10 @@ reinvent rule engines.
 <tr>
 <td width="50%"><img src="docs/screenshots/02-go.png" alt="Go"><br><sub>Go — scoring and captures</sub></td>
 <td width="50%"><img src="docs/screenshots/07-mobile.png" alt="Mobile"><br><sub>Mobile layout</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/screenshots/08-dark.png" alt="Dark mode"><br><sub>Dark mode — Gomoku</sub></td>
+<td width="50%"><img src="docs/screenshots/09-dark-xiangqi.png" alt="Dark mode Xiangqi"><br><sub>Dark mode — Xiangqi</sub></td>
 </tr>
 </table>
 
