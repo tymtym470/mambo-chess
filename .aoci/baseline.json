@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created_at": "2026-10-21T04:29:49Z",
-  "updated_at": "2026-10-21T05:02:46Z",
+  "updated_at": "2026-10-21T06:00:51Z",
   "files": {
     ".env.example": {
       "role": "index",
@@ -59,9 +59,9 @@
     },
     "aoci.code.txt": {
       "role": "index",
-      "sha256": "c27f420c5285a81f9c89bfac17561c7b8d9386e90a0b50d81acb012f4ba58bee",
-      "size": 10951,
-      "normalized_sha256": "c27f420c5285a81f9c89bfac17561c7b8d9386e90a0b50d81acb012f4ba58bee"
+      "sha256": "e8778f7f5a501838d9f421ace39ea1ad9135cc64761b9acecb89e351a76be128",
+      "size": 11008,
+      "normalized_sha256": "e8778f7f5a501838d9f421ace39ea1ad9135cc64761b9acecb89e351a76be128"
     },
     "aoci.meta.txt": {
       "role": "index",
@@ -843,9 +843,9 @@
     },
     "src/ai.js": {
       "role": "index",
-      "sha256": "4704df691599056b2f699b170257aca8fd882f82e9ffea0e94fb79550734e8ec",
-      "size": 17983,
-      "normalized_sha256": "4704df691599056b2f699b170257aca8fd882f82e9ffea0e94fb79550734e8ec"
+      "sha256": "cb711283091534e61bd8960e0b46e85dd0f02d8020fffca18c2360f70c98de8e",
+      "size": 19925,
+      "normalized_sha256": "cb711283091534e61bd8960e0b46e85dd0f02d8020fffca18c2360f70c98de8e"
     },
     "src/ai.worker.js": {
       "role": "index",
@@ -906,6 +906,12 @@
       "sha256": "832e469c723ce17b59da71c47e9adee72852d89c0c7f4f4937504d2f20dc188c",
       "size": 7234,
       "normalized_sha256": "832e469c723ce17b59da71c47e9adee72852d89c0c7f4f4937504d2f20dc188c"
+    },
+    "tests/go-ai.test.mjs": {
+      "role": "observe",
+      "sha256": "d39a4774f9727cabadb63a76923a37823d4b49a8cf3df47fb45aeeddb59d1648",
+      "size": 2809,
+      "normalized_sha256": "d39a4774f9727cabadb63a76923a37823d4b49a8cf3df47fb45aeeddb59d1648"
     },
     "tests/go-rules.test.mjs": {
       "role": "observe",
