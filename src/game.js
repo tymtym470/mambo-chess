@@ -6,7 +6,7 @@ import { GomokuBoard } from 'gomoku-game';
 
 export const GAMES = {
   gomoku: { name: '五子棋', en: 'GOMOKU', size: 15, rule: '自由五子棋 · 无禁手', first: '黑棋', second: '白棋' },
-  go: { name: '围棋', en: 'GO', size: 9, rule: '数子法 · 白贴 6.5 目', first: '黑棋', second: '白棋' },
+  go: { name: '围棋', en: 'GO', size: 19, rule: '数子法 · 白贴 6.5 目', first: '黑棋', second: '白棋' },
   xiangqi: { name: '中国象棋', en: 'XIANGQI', size: 9, rule: '红先黑后 · 三次重复和棋', first: '红方', second: '黑方' },
   chess: { name: '国际象棋', en: 'CHESS', size: 8, rule: '标准规则 · 支持升变与王车易位', first: '白方', second: '黑方' },
 };

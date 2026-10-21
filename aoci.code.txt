@@ -39,15 +39,15 @@ start-mambo.ps1[OR8T]: F:识别已有实例与端口，必要时后台拉起生�
 stop-mambo.ps1[OR6T]: F:只停止命令行里带本项目 server.mjs 的 node 进程 | R:code:scripts/start-mambo.ps1 | A:npm run stop | S:-
 
 ===F:/codex/mambo-chess/server/===
-ai-api.mjs[IN9M]: F:模型接口层：Chat Completions 与 Responses 双协议适配、落子解析与合法校验、截断与纠正重试、密钥脱敏 | R:code:server.mjs,code:src/game.js | A:requestAi 是唯一对外入口，内部按 action 分 test、move、analyze | S:直连 api.deepseek.com 必须关思考，否则推理吃满预算把落子截断；一个回合只纠正一次
+ai-api.mjs[IN9M]: F:模型接口层：Chat Completions 与 Responses 双协议适配、落子解析与合法校验、截断与纠正重试、密钥脱敏 | R:code:server.mjs,code:src/game.js | A:requestAi 是唯一对外入口，boardHint 把棋盘尺寸与 pass 写进提示词 | S:直连 api.deepseek.com 必须关思考，否则推理吃满预算把落子截断；一个回合只纠正一次
 
 ===F:/codex/mambo-chess/src/===
-App.jsx[AU9L]: F:主界面与状态机：棋种难度执子、AI 回合调度、API 连接与诊断、主题、提示、数子、战报、作者与视频入口 | R:code:src/game.js,code:src/ai.js,code:src/audio.js,code:src/storage.js,code:src/mascot.js,code:src/Board.jsx,code:server/ai-api.mjs | A:默认导出 App，服务端契约 /api/ai 与 /api/config 在此落地 | S:API Key 永不写 localStorage；AI 落子必须过 advance() 规则校验，失败即暂停；改配置要 abort 旧请求
-Board.jsx[AU8T]: F:棋盘渲染：四种棋的 SVG 棋盘、棋子、选中与合法点、提示、最后一步、序号、翻转与坐标轴 | R:code:src/game.js | A:Board 接收 match 与 onCell 等渲染 props | S:翻转只改显示，hit-test 与 legalMoves 始终用未翻转坐标
-ai.js[KA9M]: F:内置战术引擎：五子棋棋形评估与迭代加深、围棋气与提子启发、象棋与国际象棋 alpha-beta 搜索，五档难度 | R:code:src/game.js,code:src/ai.worker.js | A:analyze 是唯一入口，返回 move、suggestions、balance、title、summary | S:搜索以 performance.now 硬截止，超时抛 budget 后回落上一层，不采用不完整深度
+App.jsx[AU9L]: F:主界面与状态机：棋种难度执子、围棋路数、AI 回合调度、API 连接与诊断、主题、数子战报、作者与视频入口 | R:code:src/game.js,code:src/ai.js,code:src/audio.js,code:src/storage.js,code:src/mascot.js,code:src/Board.jsx | A:默认导出 App，服务端契约 /api/ai 与 /api/config 在此落地 | S:API Key 永不写 localStorage；AI 落子必须过 advance() 规则校验，失败即暂停；改配置要 abort 旧请求
+Board.jsx[AU8T]: F:棋盘渲染：四种棋的 SVG 棋盘、棋子、选中与合法点、提示、最后一步、序号、翻转与坐标轴 | R:code:src/game.js | A:Board 接收 match 与 onCell 等渲染 props | S:翻转只改显示，hit-test 与 legalMoves 始终用未翻转坐标；围棋盘内边距单独取 26
+ai.js[KA9M]: F:内置战术引擎：五子棋棋形评估与迭代加深、围棋势力图加两层提子威胁、象棋与国际象棋 alpha-beta 搜索，五档难度 | R:code:src/game.js,code:src/ai.worker.js | A:analyze 是唯一入口，返回 move、suggestions、balance、title、summary | S:围棋只在等级 3 以上开两层反击评估，不是蒙特卡洛；搜索以 performance.now 硬截止
 ai.worker.js[MP6T]: F:AI 引擎的 Web Worker 外壳，把分析放到主线程之外执行 | R:code:src/ai.js,code:src/App.jsx | A:onmessage 收 game 与 level，回 postMessage 结果或错误 | S:-
 audio.js[DU7S]: F:音效与语音管理器：韦伯合成音、按事件分组的语音轮换、曼波吐槽、前 30 秒循环背景乐 | R:code:src/mascot.js,code:src/App.jsx | A:sound 单例提供 configure、play、comment | S:-
-game.js[DB9M]: F:四棋种规则适配层：统一坐标、枚举合法着法、落子与胜负判定、围棋数子与悔棋 | R:code:src/App.jsx,code:src/ai.js,code:src/Board.jsx | A:Match 类与 advance、undo 是唯一入口 | S:围棋数子只认完全被单色包围且不触边的区域，开放地算中性
+game.js[DB9M]: F:四棋种规则适配层：统一坐标、枚举合法着法、落子与胜负判定、围棋数子与悔棋 | R:code:src/App.jsx,code:src/ai.js,code:src/Board.jsx | A:Match 类与 advance、undo 是唯一入口 | S:围棋默认 19 路（GAMES.go.size），存档里的 size 会覆盖它；数子只认完全被单色包围且不触边的区域
 main.jsx[EU7T]: F:React 挂载入口与错误边界：崩溃时给恢复页 | R:code:src/App.jsx,code:src/styles.css | A:渲染 App，重建前清掉 mambo-current | S:-
 mascot.js[CU6T]: F:素材基址推导与曼波表情图映射，兼作图片兜底 | R:code:src/App.jsx,code:public/mambo-icon.svg | A:ASSET_BASE 与 assetUrl 统一拼路径 | S:手写路径必须走 assetUrl，否则子目录部署 404
 storage.js[PD7T]: F:localStorage 读写封装与对局存档校验 | R:code:src/game.js | A:readStorage、writeStorage、validateGame | S:校验必须重建 Match，非法存档回退新局

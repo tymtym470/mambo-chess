@@ -210,6 +210,7 @@ export function boardHint(position) {
     `当前棋盘是 ${axis}（position.size = [${cols}, ${rows}]）。`,
     `格点坐标是「列,行」，左上角为 0,0，合法范围是列 0–${cols - 1}、行 0–${rows - 1}。`,
     '超出这个范围的坐标一定是错的，不要输出。',
+    'legal 里偶见的 pass 是围棋的停一手，可以原样输出。',
   ].join('');
 }
 

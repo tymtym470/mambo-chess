@@ -398,7 +398,7 @@ export default function App() {
     else action();
   }
   function startGame(kind = game.kind, size = game.size) {
-    setGame(freshGame(kind, kind === 'go' ? ([9, 13, 19].includes(size) ? size : 9) : undefined));
+    setGame(freshGame(kind, kind === 'go' ? ([19, 9, 13].includes(size) ? size : 19) : undefined));
     setSeconds(0); setFlipped(settings.side === -1); setModal(null); setCatMood(moodForEvent('start')); sound.play('start');
   }
   function changeGame(kind) { if (kind !== game.kind) guardChange(() => startGame(kind)); }
@@ -462,7 +462,7 @@ export default function App() {
           <div className="difficulty-control" role="group" aria-label="AI 难度">{LEVELS.map((label, index) => <button key={label} disabled={settings.mode !== 'ai'} title={`等级 ${index + 1} ${label}`} aria-label={`难度 ${index + 1} ${label}`} aria-pressed={settings.level === index + 1} onClick={() => setting('level', index + 1)} className={settings.level === index + 1 ? 'active' : ''}>{index + 1}</button>)}</div>
           <div className="range-labels"><span>轻松一点</span><span>认真一点</span></div>
           {settings.mode === 'ai' && <><div className="field-heading small">我的执子</div><div className="side-selector">{[1, -1].map(side => <button key={side} className={settings.side === side ? 'active' : ''} onClick={() => changeSettingGame('side', side)}><span className={`stone-sample ${game.kind === 'chess' ? side === 1 ? 'white' : 'black' : game.kind === 'xiangqi' ? side === 1 ? 'red' : 'black' : side === 1 ? 'black' : 'white'}`}/>{sideName(game.kind, side)}{side === 1 && <small>先手</small>}</button>)}</div></>}
-          {game.kind === 'go' && <div className="size-row"><span>棋盘路数</span><select aria-label="围棋棋盘大小" value={game.size} onChange={e => guardChange(() => startGame('go', Number(e.target.value)))}>{[9, 13, 19].map(n => <option key={n} value={n}>{n} 路</option>)}</select></div>}
+          {game.kind === 'go' && <div className="size-row"><span>棋盘路数</span><select aria-label="围棋棋盘大小" value={game.size} onChange={e => guardChange(() => startGame('go', Number(e.target.value)))}>{[[19, '19 路（标准）'], [13, '13 路'], [9, '9 路']].map(([n, label]) => <option key={n} value={n}>{label}</option>)}</select></div>}
           <button className="primary-button new-game" onClick={() => guardChange(() => startGame())}><Plus size={18}/>开启新对局<ChevronRight size={17}/></button>
           <button className="engine-button" onClick={() => setModal('engine')}><Cpu size={14}/>{settings.provider === 'local' ? '本地战术引擎' : 'API 模型对弈'}<ChevronDown size={13}/></button>
         </section>
@@ -547,7 +547,7 @@ export default function App() {
     </Modal>}
     {modal === 'rules' && <Modal title={`${kindInfo.name} · 对局约定`} onClose={() => setModal(null)}><div className="rules-copy">
       {game.kind === 'gomoku' && <p>黑棋先行，双方轮流在交叉点落子。横、竖、斜线连续五子或以上获胜。本棋室采用自由五子棋，不设三三、四四和长连禁手。</p>}
-      {game.kind === 'go' && <><p>黑棋先行。棋块没有气时被提走，禁止自杀与重复全盘局面。双方连续停一手进入数子，白贴 6.5 目。</p><p>本地 AI 是内置休闲战术引擎，不代替专业围棋引擎。</p></>}
+      {game.kind === 'go' && <><p>黑棋先行。标准 19×19 棋盘，也可切 13 路 / 9 路。棋块没有气时被提走，禁止自杀与重复全盘局面。双方连续停一手进入数子，白贴 6.5 目。</p><p>本地 AI 是内置战术引擎（提子、打吃、气与势力的启发式搜索），不代替专业围棋引擎。</p></>}
       {game.kind === 'xiangqi' && <p>红先黑后。支持蹩马腿、塞象眼、炮隔子吃子、九宫、不过河象及将帅不能照面等规则。将死或困毙判负。</p>}
       {game.kind === 'chess' && <p>白先黑后。支持王车易位、吃过路兵与兵升变，不能走出让己方王受攻击的着法。</p>}
       <p>局势条是本地启发式评价，不是统计胜率。API 分析是模型建议，实际走法仍以规则校验为准。</p>

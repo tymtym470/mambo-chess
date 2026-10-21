@@ -220,10 +220,24 @@ function gomokuSearch(match, level, analysis) {
 function goSearch(match, level, analysis) {
   const board = match.engine, side = match.turn, n = match.size;
   const legal = match.legalMoves(), empty = board.signMap.flat().filter(v => v === 0).length;
-  const graded = [];
+  const deadline = performance.now() + (analysis ? 220 : [30, 90, 260, 700, 1500][level - 1]);
+  // 势力图：每颗子向周围 3 圈衰减扩散，让落点有“顺风扩张 / 逆风搅局”的方向感。
+  const influence = Array.from({ length: n }, () => new Array(n).fill(0));
+  for (let y = 0; y < n; y++) for (let x = 0; x < n; x++) {
+    const v = board.get([x, y]);
+    if (!v) continue;
+    for (let dy = -3; dy <= 3; dy++) for (let dx = -3; dx <= 3; dx++) {
+      const d = Math.abs(dx) + Math.abs(dy);
+      if (!d || d > 3) continue;
+      const px = x + dx, py = y + dy;
+      if (px < 0 || py < 0 || px >= n || py >= n) continue;
+      influence[py][px] += v * (4 - d);
+    }
+  }
   let nodes = 0;
+  const graded = [];
   for (const m of legal.filter(m => !m.pass)) {
-    nodes++;
+    if (++nodes % 40 === 0 && performance.now() > deadline) break;
     const [x, y] = m.to;
     const next = board.makeMove(side, m.to);
     const taken = next.getCaptures(side) - board.getCaptures(side);
@@ -235,31 +249,51 @@ function goSearch(match, level, analysis) {
     const atari = enemy.reduce((sum, p) => sum + (next.get(p) === -side && next.getLiberties(p).length === 1 ? next.getChain(p).length : 0), 0);
     const eye = neighbors.length >= 2 && own.length === neighbors.length;
     const edge = Math.min(x, y, n - 1 - x, n - 1 - y);
-    const thirdLine = Math.max(0, 3 - Math.abs(edge - (n === 9 ? 2 : 3)));
+    const thirdLine = Math.max(0, 3 - Math.abs(edge - (n >= 13 ? 3 : 2)));
     const opening = match.log.length < n * 2;
-    let value = taken * 180 + (saving ? 130 : 0) + atari * 26 + Math.min(liberties, 6) * 4
-      + (own.length === 1 ? 6 : own.length === 2 ? 10 : 0) + (opening ? thirdLine * 9 : 0)
-      - (liberties === 1 ? 150 : 0) - (eye && !taken ? 240 : 0);
-    if (level >= 4 || analysis) {
-      const threatened = new Set();
-      for (const p of enemy) if (next.get(p) === -side && next.getLiberties(p).length === 1) {
-        const liberty = next.getLiberties(p)[0];
-        if (next.analyzeMove(-side, liberty).capturing) value -= 32;
-      }
-      for (const p of own) if (board.getLiberties(p).length <= 2) threatened.add(board.getChain(p).map(v => v.join(',')).sort().join('|'));
-      value += threatened.size * 5;
-    }
+    // 刚下的这手把邻块从 2 气走成 1 气，等于替对手做劫材。
+    const selfAtari = liberties > 1 && own.some(p => next.get(p) === side && next.getLiberties(p).length === 1);
+    const value = taken * 200 + (saving ? 150 : 0) + atari * 32 + Math.min(liberties, 7) * 6
+      + (own.length === 1 ? 8 : own.length === 2 ? 12 : 0)
+      + (opening ? thirdLine * 10 : 0)
+      + influence[y][x] * side * 2
+      - (liberties === 1 ? 180 : 0)
+      - (eye && !taken ? 280 : 0)
+      - (selfAtari ? 60 : 0);
     graded.push({ ...m, value, taken, saving, atari, eye });
+  }
+  // 两层：只看最强的一批候选，问一句「我下这里，对手能不能马上提掉我」。
+  const deep = analysis ? 0 : [0, 0, 6, 10, 16][level - 1];
+  graded.sort((a, b) => b.value - a.value);
+  if (deep) for (const candidate of graded.slice(0, deep)) {
+    if (performance.now() > deadline) break;
+    const next = board.makeMove(side, candidate.to);
+    const spots = new Set();
+    for (const p of [candidate.to, ...next.getNeighbors(candidate.to)]) {
+      if (next.get(p) !== side) continue;
+      for (const liberty of next.getLiberties(p)) spots.add(liberty.join(','));
+    }
+    let threat = 0;
+    for (const key of spots) {
+      const point = key.split(',').map(Number);
+      const reply = next.analyzeMove(-side, point);
+      if (reply.overwrite || reply.suicide || reply.ko) continue;
+      const after = next.makeMove(-side, point);
+      const gained = after.getCaptures(-side) - next.getCaptures(-side);
+      if (gained > threat) threat = gained;
+    }
+    candidate.value -= threat * 210;
   }
   graded.sort((a, b) => b.value - a.value);
   let selected = graded[0] || legal.find(m => m.pass);
-  if ((match.passes === 1 && empty < n * n * .45 && (graded[0]?.value || 0) < 100)
-    || !graded.length || (graded[0]?.value || 0) < 0) {
+  const best = graded[0]?.value || 0;
+  if ((match.passes === 1 && empty < n * n * .45 && best < 100)
+    || !graded.length || best < 0) {
     selected = legal.find(m => m.pass);
     graded.unshift({ ...selected, value: 0 });
   } else if (!analysis) {
     const counts = [15, 8, 4, 2, 1];
-    const pool = graded.filter(m => m.value >= graded[0].value - [150, 65, 30, 12, 0][level - 1]).slice(0, counts[level - 1]);
+    const pool = graded.filter(m => m.value >= best - [150, 65, 30, 12, 0][level - 1]).slice(0, counts[level - 1]);
     selected = choice(pool);
   }
   // Early territory flood-fill is not a meaningful estimate; use stones and tactical health.
@@ -271,7 +305,7 @@ function goSearch(match, level, analysis) {
     score += sign * chain.length * (libs === 1 ? -35 : 12);
   }
   if (empty < n * n * .35) { const area = match.areaScore(); score = (area.black - area.white) * 25; }
-  return { ranked: graded, selected, value: score, nodes, depth: 1 };
+  return { ranked: graded, selected, value: score, nodes, depth: deep ? 2 : 1 };
 }
 
 function explanation(match, candidate) {
