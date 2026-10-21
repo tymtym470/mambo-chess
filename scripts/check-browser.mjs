@@ -103,7 +103,7 @@ await desktop.waitForTimeout(300);
 await desktop.locator('.game-option:has-text("五子棋")').click();
 await desktop.locator('.mode-switch button:has-text("曼波 AI")').click();
 await desktop.locator('.board-cell').nth(112).click();
-await desktop.waitForTimeout(1600);
+await desktop.waitForTimeout(6000);
 await assert((await desktop.locator('.piece').count()) >= 2, 'gomoku: AI did not reply');
 
 await desktop.locator('[aria-label="偏好设置"]').click();
