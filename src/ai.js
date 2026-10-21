@@ -1,4 +1,5 @@
 import { Match, GAMES, sideName } from './game.js';
+import { FastBoard, playout } from './go-mc.js';
 
 const VALUES = { p: 100, n: 320, b: 335, r: 500, q: 900, k: 20000, pawn: 100, horse: 430, elephant: 210, advisor: 210, chariot: 900, cannon: 460, king: 20000 };
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -427,7 +428,7 @@ function goSearch(match, level, analysis) {
     }
 
     // 旧引擎的实地骨架：三线 + 贴子，保证它还是"会围空"的那一版
-    let value = taken * 200 + (rescue ? 160 : 0) + rescue * 45 + atari * 34 + Math.min(liberties, 6) * 5
+    let value = taken * 400 + (rescue ? 700 : 0) + rescue * 120 + atari * 34 + Math.min(liberties, 6) * 5
       + (own.length === 1 ? 6 : own.length === 2 ? 10 : 0)
       // 三线只在"这片区域还没有自家子"时加分：建立根基，不是沿着三线往前走
       + (opening && ownNear > 3 ? thirdLine * 9 : 0);
@@ -463,7 +464,33 @@ function goSearch(match, level, analysis) {
     // 别在自己已经围住的地方补子
     if (!taken && !rescue && !eye && neighbors.filter(p => board.get(p) === side).length >= 3) value -= 90;
 
-    graded.push({ ...m, value, taken, saving: rescue > 0, atari, eye });
+    graded.push({ ...m, value, taken, saving: rescue > 0, atari, eye, edge, rescue });
+  }
+
+  // 先按启发式排序，蒙特卡洛才有前几名可言
+  graded.sort((a, b) => b.value - a.value);
+  // 蒙特卡洛：把启发式筛出的前几名真走完若干随机局，用胜率说话。
+  // 这是这次"不那么傻"的关键：启发式只负责挑候选，胜负交给随机对局统计。
+  const mcCandidates = analysis ? 0 : [0, 6, 8, 10, 12][level - 1];
+  const mcGames = analysis ? 0 : [0, 24, 32, 50, 64][level - 1];
+  if (mcCandidates) {
+    const base = FastBoard.fromSignMap(board.signMap);
+    const pool = graded.slice(0, mcCandidates).filter(c => c.edge !== 0 || c.taken || c.rescue);
+    for (const candidate of pool) {
+      if (performance.now() > deadline) break;
+      let wins = 0, games = 0;
+      for (let g = 0; g < mcGames; g++) {
+        if (performance.now() > deadline) break;
+        const f = base.clone();
+        if (!f.play(candidate.to[0] * n + candidate.to[1], side)) continue;
+        const diff = playout(f, -side, 6.5);
+        games += 1;
+        if (diff * side > 0) wins += 1;
+      }
+      if (games) candidate.value += (wins / games) * 320;
+      if (candidate.taken) candidate.value += 2500;
+      if (candidate.edge === 0 && !candidate.taken && !candidate.rescue) candidate.value -= 900;
+    }
   }
 
   const deep = analysis ? 0 : [0, 10, 16, 24, 32][level - 1];

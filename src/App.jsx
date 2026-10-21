@@ -18,14 +18,27 @@ const DEFAULT_SETTINGS = {
   theme: 'system',   // 'system' 跟随系统 | 'light' | 'dark'
 };
 const FAKE_PLAYERS = [
-  { id: 'yehang', name: '夜航船', level: 3, tag: '刚下晚自习', avatar: '夜' },
-  { id: 'aqiang', name: '阿强不加班', level: 2, tag: '手机在线', avatar: '强' },
-  { id: 'mumu', name: '木木夕', level: 4, tag: '连输三把了', avatar: '木' },
-  { id: 'laowang', name: '隔壁老王', level: 3, tag: '茶还没凉', avatar: '王' },
-  { id: 'qinghe', name: '清和', level: 5, tag: '周末棋摊常客', avatar: '清' },
-  { id: 'xiaoyu', name: '小鱼干', level: 2, tag: '刚学会围棋', avatar: '鱼' },
-  { id: 'shanzhu', name: '山住一宿', level: 4, tag: '在网吧', avatar: '山' },
+  { id: 'yehang', name: '夜航船', level: 3, tag: '刚下晚自习', avatar: '夜', ping: 42, win: 58, room: 'A-107' },
+  { id: 'aqiang', name: '阿强不加班', level: 2, tag: '手机在线', avatar: '强', ping: 96, win: 47, room: 'A-112' },
+  { id: 'mumu', name: '木木夕', level: 4, tag: '连输三把了', avatar: '木', ping: 31, win: 63, room: 'B-204' },
+  { id: 'laowang', name: '隔壁老王', level: 3, tag: '茶还没凉', avatar: '王', ping: 58, win: 52, room: 'B-209' },
+  { id: 'qinghe', name: '清和', level: 5, tag: '周末棋摊常客', avatar: '清', ping: 27, win: 71, room: 'C-301' },
+  { id: 'xiaoyu', name: '小鱼干', level: 2, tag: '刚学会围棋', avatar: '鱼', ping: 133, win: 41, room: 'A-118' },
+  { id: 'shanzhu', name: '山住一宿', level: 4, tag: '在网吧', avatar: '山', ping: 74, win: 60, room: 'C-305' },
+  { id: 'lengyue', name: '冷月葬花魂', level: 4, tag: '开了个小窗', avatar: '冷', ping: 49, win: 66, room: 'B-215' },
+  { id: 'dabai', name: '大白菜', level: 3, tag: '刚开局', avatar: '白', ping: 88, win: 55, room: 'A-121' },
+  { id: 'yeban', name: '夜半敲门', level: 5, tag: '不打了不打了', avatar: '敲', ping: 35, win: 69, room: 'C-308' },
 ];
+// 大厅里飘过的系统消息，让气氛像真的有人在
+const LOBBY_TICKER = [
+  '「小鱼干」在 A-118 开了新局',
+  '「木木夕」刚赢了一盘，连胜 2',
+  '「阿强不加班」掉线重连中…',
+  '「清和」进入大厅',
+  '有人给「隔壁老王」点了个赞',
+  '「山住一宿」正在观战 C-301',
+];
+const RIVAL_CHATTER = ['这步有点东西', '等我一下，回个消息', '再来？', '啧，被你看出来了', '手滑了…', '你这段下得挺稳'];
 const DEFAULT_API = { baseUrl: 'https://api.deepseek.com', model: '', key: '' };
 const API_PRESETS = [
   { id: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com' },
@@ -42,6 +55,7 @@ function loadApi() {
   const saved = readStorage('mambo-api', {});
   return { ...DEFAULT_API, ...saved, key: '' };
 }
+const choiceOf = list => list[Math.floor(Math.random() * list.length)];
 const minute = s => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
 
 function IconButton({ icon: Icon, label, onClick, active, className = '', ...props }) {
@@ -553,7 +567,8 @@ export default function App() {
     {modal === 'board' && <Modal title="棋盘操作" onClose={() => setModal(null)}><div className="board-menu"><button onClick={() => { setModal(null); guardChange(() => startGame()); }}><Plus size={18}/>开始新对局<ChevronRight size={16}/></button><button onClick={() => { setFlipped(f => !f); setModal(null); }}><RotateCw size={18}/>翻转棋盘<ChevronRight size={16}/></button>{game.kind === 'go' && <button onClick={() => { setModal(null); performMove('pass'); }} disabled={!!match.result || match.scoring || thinking}><SkipForward size={18}/>停一手<ChevronRight size={16}/></button>}<button onClick={() => { setModal(null); setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })) }); }} disabled={!!match.result || thinking || !game.moves.length}><Flag size={18}/>认输<ChevronRight size={16}/></button></div></Modal>}
     {modal === 'lobby' && <Modal title="联机大厅" onClose={() => setModal(null)} wide>
       <div className="lobby-nick"><label htmlFor="nick-input">我的昵称</label><input id="nick-input" maxLength={12} value={draftNick} placeholder="输个名字，对手才认得出你" onChange={e => setDraftNick(e.target.value)}/></div>
-      <p className="lobby-hint">在线玩家 {FAKE_PLAYERS.length} 人 · 选一个开局（他们下棋偏慢，一般想 5~10 秒一手）</p>
+      <div className="lobby-meta"><span className="live-dot"/>在线 {88 + FAKE_PLAYERS.length} 人 · 空闲桌 {FAKE_PLAYERS.length - 1} 张<span className="lobby-ms">延迟 {18 + (Date.now() % 23)}ms</span></div>
+      <div className="lobby-ticker">{LOBBY_TICKER[Math.floor(Date.now() / 1000) % LOBBY_TICKER.length]}</div>
       <div className="lobby-list">{FAKE_PLAYERS.map(p => (
         <button key={p.id} className={`lobby-row ${rival?.id === p.id ? 'active' : ''}`} onClick={() => {
           setNick(draftNick.trim()); writeStorage('mambo-nick', draftNick.trim());
@@ -562,8 +577,8 @@ export default function App() {
           setSeconds(0); setFlipped(p.id % 2 === 1); notify(`已和 ${p.name} 开局`);
         }}>
           <span className="lobby-avatar">{p.avatar}</span>
-          <span className="lobby-name"><strong>{p.name}</strong><small>{p.tag}</small></span>
-          <span className="lobby-level">Lv.{p.level} {LEVELS[p.level - 1]}</span>
+          <span className="lobby-name"><strong>{p.name}</strong><small>{p.tag} · 房间 {p.room}</small></span>
+          <span className="lobby-stat"><b>{p.ping}ms</b><small>胜率 {p.win}%</small></span><span className="lobby-level">Lv.{p.level} {LEVELS[p.level - 1]}</span>
         </button>
       ))}</div>
       {rival && <button className="text-button full-width" onClick={() => { setRival(null); setModal(null); notify('已退出联机，回到和曼波下棋'); }}>退出联机，自己练</button>}

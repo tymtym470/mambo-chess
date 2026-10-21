@@ -859,3 +859,17 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 [data-theme="dark"] .lobby-name strong { color: #d9ecdf; }
 [data-theme="dark"] .lobby-name small { color: #7f9486; }
 [data-theme="dark"] .lobby-level { color: #8fa79a; }
+
+/* 大厅：更像真在线的信息量 */
+.lobby-meta { display: flex; align-items: center; gap: 8px; margin: -4px 0 6px; font-size: 10px; color: #8fa57c; }
+.lobby-ms { margin-left: auto; color: #a9b89a; }
+.lobby-ticker { margin-bottom: 12px; padding: 7px 10px; font-size: 10px; color: #93a37f; background: #f4f8ee; border-left: 2px solid #cbdcb6; border-radius: 4px; }
+.lobby-stat { display: grid; gap: 2px; text-align: right; margin-left: auto; }
+.lobby-stat b { font-size: 10px; font-weight: 600; color: #7f9469; }
+.lobby-stat small { font-size: 9px; color: #a7b598; }
+.lobby-row .lobby-level { margin-left: 10px; }
+[data-theme="dark"] .lobby-meta { color: #8fa79a; }
+[data-theme="dark"] .lobby-ms { color: #7f9486; }
+[data-theme="dark"] .lobby-ticker { color: #9db5a5; background: #1f2a24; border-left-color: #43604c; }
+[data-theme="dark"] .lobby-stat b { color: #a9c096; }
+[data-theme="dark"] .lobby-stat small { color: #7f9486; }
