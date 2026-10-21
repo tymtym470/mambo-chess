@@ -122,13 +122,23 @@ export class FastBoard {
 const KO_OFFSET = 0.0;
 
 /** 从当前局面随机走完一局，返回黑方视角的分差（正数=黑好）。 */
-export function playout(board, toPlay, komi = 6.5, maxMoves = 600) {
+export function playout(board, toPlay, komi = 6.5, maxMoves = 600, contact = 0.7) {
   const n = board.n, total = n * n;
   let color = toPlay, passes = 0;
   for (let move = 0; move < maxMoves; move++) {
     let played = false;
-    for (let tries = 0; tries < 60; tries++) {
-      const i = (Math.random() * total) | 0;
+    for (let tries = 0; tries < 80; tries++) {
+      let i = (Math.random() * total) | 0;
+      // 7 成概率贴着已有棋子拆招（纯随机会下一堆废子）
+      if (Math.random() < contact) {
+        const j = (Math.random() * total) | 0;
+        if (board.b[j] !== 0) {
+          const jx = j % n, jy = (j / n) | 0;
+          const nb = [jx > 0 ? j - 1 : -1, jx < n - 1 ? j + 1 : -1, jy > 0 ? j - n : -1, jy < n - 1 ? j + n : -1];
+          const pick = nb[(Math.random() * 4) | 0];
+          if (pick >= 0) i = pick;
+        }
+      }
       if (board.b[i] !== 0) continue;
       if (board.play(i, color)) { played = true; break; }
     }
