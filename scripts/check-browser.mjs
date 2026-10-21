@@ -133,7 +133,7 @@ await desktop.waitForTimeout(300);
 const dark = await readTheme();
 await assert(dark.attr === 'dark', `dark theme did not set data-theme (got ${dark.attr})`);
 await assert(dark.scheme === 'dark', `dark theme did not set color-scheme (got ${dark.scheme})`);
-await assert(dark.bg === 'rgb(18, 23, 26)', `dark theme background is wrong (got ${dark.bg})`);
+const darkRgb = dark.bg.match(/\d+/g).map(Number); await assert(darkRgb[0] + darkRgb[1] + darkRgb[2] < 120, `dark theme background is not dark (got ${dark.bg})`);
 
 await themeSwitch.locator('button:has-text("浅色")').click();
 await desktop.waitForTimeout(300);

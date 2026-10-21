@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="night" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#141b1e"/>
+      <stop offset=".6" stop-color="#111a1c"/>
+      <stop offset="1" stop-color="#0d1416"/>
+    </linearGradient>
+    <linearGradient id="mist" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#63a08c" stop-opacity=".22"/>
+      <stop offset="1" stop-color="#63a08c" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur2"><feGaussianBlur stdDeviation="30"/></filter>
+    <filter id="grain2">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="3" seed="11" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".07"/></feComponentTransfer>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#night)"/>
+  <g filter="url(#blur2)" opacity=".85">
+    <path d="M-40 700 C130 610 210 660 306 610 C400 562 470 604 560 566 C660 524 742 588 850 552 C950 518 1030 556 1240 508 L1240 900 L-40 900 Z" fill="url(#mist)"/>
+  </g>
+  <circle cx="930" cy="170" r="62" fill="#9fd3c0" opacity=".16" filter="url(#blur2)"/>
+  <rect width="1200" height="900" filter="url(#grain2)" opacity=".85"/>
+</svg>

@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fbf7ee"/>
+      <stop offset=".55" stop-color="#f4eee1"/>
+      <stop offset="1" stop-color="#eae3d3"/>
+    </linearGradient>
+    <linearGradient id="wash" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8fa996" stop-opacity=".34"/>
+      <stop offset="1" stop-color="#8fa996" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="wash2" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#c2a98c" stop-opacity=".26"/>
+      <stop offset="1" stop-color="#c2a98c" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="grain">
+      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="7" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".055"/></feComponentTransfer>
+    </filter>
+    <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#paper)"/>
+
+  <!-- 淡淡的水墨远山，手绘感 -->
+  <g filter="url(#soft)" opacity=".55">
+    <path d="M-40 660 C120 566 196 612 286 566 C372 522 430 556 520 520 C612 484 690 542 790 512 C880 486 950 520 1240 470 L1240 900 L-40 900 Z" fill="url(#wash)"/>
+    <path d="M-40 742 C140 690 250 726 356 690 C470 652 560 700 690 664 C800 634 900 672 1240 620 L1240 900 L-40 900 Z" fill="url(#wash)" opacity=".7"/>
+  </g>
+  <g filter="url(#soft)" opacity=".5">
+    <path d="M960 -40 C1010 60 1076 96 1140 120 C1180 136 1210 150 1240 158 L1240 -40 Z" fill="url(#wash2)"/>
+  </g>
+
+  <!-- 一枚淡日 -->
+  <circle cx="946" cy="150" r="58" fill="#e9c9a6" opacity=".38" filter="url(#soft)"/>
+
+  <!-- 几笔细线，像铅笔打的格子 -->
+  <g stroke="#9aa892" stroke-opacity=".16" stroke-width="1">
+    <path d="M80 120 H520" /><path d="M80 152 H420" /><path d="M80 184 H470"/>
+  </g>
+
+  <!-- 纸纹 -->
+  <rect width="1200" height="900" filter="url(#grain)" opacity=".9"/>
+</svg>

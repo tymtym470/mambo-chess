@@ -32,14 +32,14 @@ export default function Board({ match, selected, onCell, hint, flipped, numbers,
   return <div className={`board-surface ${isChess ? 'chess-surface' : ''} ${xq ? 'xiangqi-surface' : ''}`} data-testid="board">
     <svg className="board-svg" viewBox={`0 0 640 ${height}`} role="group" aria-label={`${match.kind} 棋盘`} style={{ aspectRatio: `640 / ${height}` }}>
       <defs>
-        <radialGradient id="black-stone" cx=".32" cy=".24" r=".75"><stop stopColor="#69746f"/><stop offset=".46" stopColor="#344039"/><stop offset="1" stopColor="#202b25"/></radialGradient>
-        <radialGradient id="white-stone" cx=".32" cy=".25" r=".8"><stop stopColor="#fff"/><stop offset=".6" stopColor="#f5f8f6"/><stop offset="1" stopColor="#cbd6d1"/></radialGradient>
-        <linearGradient id="xq-piece" x1="0" y1="0" x2=".8" y2="1"><stop stopColor="#fff"/><stop offset="1" stopColor="#e6ece8"/></linearGradient>
+        <radialGradient id="black-stone" cx=".32" cy=".24" r=".75"><stop stopColor="#7d8a84"/><stop offset=".42" stopColor="#33403a"/><stop offset="1" stopColor="#1a2320"/></radialGradient>
+        <radialGradient id="white-stone" cx=".32" cy=".25" r=".8"><stop stopColor="#fffef9"/><stop offset=".55" stopColor="#f7f3e8"/><stop offset="1" stopColor="#d3c9b4"/></radialGradient>
+        <linearGradient id="xq-piece" x1="0" y1="0" x2=".8" y2="1"><stop stopColor="#fffdf6"/><stop offset="1" stopColor="#e9dcc2"/></linearGradient>
         <filter id="stone-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="3" stdDeviation="2.2" floodColor="#2d5040" floodOpacity=".25"/></filter>
       </defs>
       {isChess ? <g>{Array.from({ length: 64 }, (_, i) => {
         const x = i % 8, y = Math.floor(i / 8);
-        return <rect key={i} x={padding + x * step} y={padding + y * step} width={step + .3} height={step + .3} fill={(x + y) % 2 ? '#9ab6a8' : '#eff4ef'}/>;
+        return <rect key={i} x={padding + x * step} y={padding + y * step} width={step + .3} height={step + .3} fill={(x + y) % 2 ? '#c2a273' : '#f2e3c6'}/>;
       })}</g> : <g stroke="#637c70" strokeWidth="1" opacity=".46">
         {Array.from({ length: rows }, (_, y) => <line key={`h${y}`} x1={padding} y1={padding + y * step} x2={640 - padding} y2={padding + y * step}/>)}
         {Array.from({ length: size }, (_, x) => xq && x > 0 && x < 8

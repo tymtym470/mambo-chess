@@ -877,3 +877,115 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 /* 固定最高级：不再提供下调 */
 .top-level-badge { display: flex; align-items: center; gap: 7px; margin-top: 9px; padding: 9px 12px; font-size: 11px; color: #4f6b3a; background: #edf4e2; border: 1px solid #cbd9b8; border-radius: 8px; }
 [data-theme="dark"] .top-level-badge { color: #b7d0a5; background: #1f2a24; border-color: #3c5142; }
+
+/* ============================================================
+   主题 v2 · 纸张底色 + 墨绿主色 + 木纹棋盘
+   目的：换掉原来那股"老气"，同时不依赖任何外部图片。
+   ============================================================ */
+:root {
+  --line: #e3d9c4;
+  --text: #333a35;
+  --muted: #8d9486;
+  --accent: #2f7a5f;
+  --accent-soft: #e5f0e7;
+}
+
+html body {
+  background-color: #f6f1e7;
+  background-image: url('./bg/paper.svg');
+  background-size: cover;
+  background-attachment: fixed;
+  background-position: center;
+}
+html[data-theme="dark"] body {
+  background-color: #101719;
+  background-image: url('./bg/paper-dark.svg');
+}
+.app-shell { position: relative; z-index: 1; }
+
+/* 顶部栏：毛玻璃 */
+.topbar {
+  background: rgba(255, 253, 247, .66);
+  backdrop-filter: blur(16px) saturate(1.15);
+  border-bottom: 1px solid rgba(196, 178, 146, .34);
+  padding: 10px 6px;
+  margin-bottom: 6px;
+  border-radius: 0 0 18px 18px;
+}
+html[data-theme="dark"] .topbar { background: rgba(14, 20, 22, .66); border-bottom-color: rgba(90, 120, 108, .34); }
+
+/* 侧栏：卡片化 */
+.left-sidebar, .right-sidebar {
+  background: rgba(255, 253, 246, .58);
+  border: 1px solid rgba(214, 197, 166, .5);
+  border-radius: 18px;
+  padding: 16px 15px;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(120, 102, 74, .07);
+}
+html[data-theme="dark"] .left-sidebar,
+html[data-theme="dark"] .right-sidebar {
+  background: rgba(20, 28, 30, .62);
+  border-color: rgba(74, 102, 92, .45);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, .3);
+}
+.game-option { border-radius: 12px; }
+.game-option.active { background: var(--accent-soft); }
+html[data-theme="dark"] .game-option.active { background: rgba(47, 122, 95, .22); }
+
+/* 棋盘：木纹 */
+.board-glass {
+  padding: 14px;
+  border-radius: 20px;
+  background: linear-gradient(158deg, #d8b789 0%, #c49a68 42%, #a97f52 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), inset 0 -2px 6px rgba(90, 62, 34, .35), 0 18px 44px rgba(88, 66, 42, .22);
+}
+.board-glass::after { border-color: rgba(255, 255, 255, .22); inset: 6px; border-radius: 14px; }
+.board-surface {
+  border-radius: 10px;
+  border: 1px solid #a67c4f;
+  background:
+    repeating-linear-gradient(92deg, rgba(150, 110, 68, .07) 0 2px, rgba(255, 255, 255, 0) 2px 8px),
+    linear-gradient(160deg, #f4e6c9 0%, #ecdcbb 45%, #e2cda6 100%);
+  box-shadow: inset 0 0 26px rgba(150, 112, 66, .22);
+}
+html[data-theme="dark"] .board-glass {
+  background: linear-gradient(158deg, #3a3a38 0%, #2b2b29 55%, #1f1f1e 100%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 18px 44px rgba(0, 0, 0, .5);
+}
+html[data-theme="dark"] .board-surface {
+  background:
+    repeating-linear-gradient(92deg, rgba(255, 255, 255, .03) 0 2px, rgba(0, 0, 0, 0) 2px 8px),
+    linear-gradient(160deg, #24302e 0%, #1d2725 100%);
+  border-color: #3d4f49;
+}
+
+/* 按钮与控件：圆润一点，别那么方正 */
+.primary-button {
+  border-radius: 999px;
+  background: linear-gradient(135deg, #2f7a5f, #3f9673);
+  box-shadow: 0 8px 20px rgba(47, 122, 95, .28);
+}
+.primary-button:hover { background: linear-gradient(135deg, #27684f, #368a66); }
+.secondary-button { border-radius: 10px; }
+.icon-button { border-radius: 10px; }
+.api-status { border-radius: 999px; background: rgba(255, 255, 255, .7); }
+html[data-theme="dark"] .api-status { background: rgba(30, 42, 40, .8); }
+.board-toolbar { border-radius: 14px; }
+.page-footer { border-top-color: rgba(200, 182, 150, .4); color: #9aa38f; }
+
+/* 全屏（沉浸）模式：把棋盘放大，右侧表情与声音仍然在 */
+html:fullscreen .app-shell { max-width: none; padding: 0 18px; }
+html:fullscreen .workspace-heading { padding: 14px 0 12px; }
+html:fullscreen .topbar { border-radius: 0; }
+.immersive .left-sidebar { display: none; }
+.immersive .workspace { grid-template-columns: minmax(0, 1fr) 268px; gap: 22px; }
+.immersive .play-area { max-width: none; }
+.immersive .page-footer { display: none; }
+.immersive .workspace-heading { display: none; }
+
+/* 声音开关：常驻可见的一颗胶囊 */
+.sound-pill { display: inline-flex; align-items: center; gap: 7px; height: 34px; padding: 0 12px; font-size: 11px; border-radius: 999px; border: 1px solid rgba(190, 172, 141, .55); background: rgba(255, 253, 247, .74); color: #5c6a58; }
+.sound-pill.on { color: #2f7a5f; border-color: rgba(47, 122, 95, .5); background: rgba(229, 240, 231, .9); }
+html[data-theme="dark"] .sound-pill { background: rgba(26, 36, 34, .82); border-color: rgba(80, 108, 98, .6); color: #a9c3b4; }
+html[data-theme="dark"] .sound-pill.on { color: #7fd3ac; border-color: rgba(111, 208, 165, .5); background: rgba(39, 74, 60, .8); }

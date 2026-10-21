@@ -199,7 +199,7 @@ export default function App() {
   const [selected, setSelected] = useState(null), [hint, setHint] = useState(null);
   const [flipped, setFlipped] = useState(false), [focus, setFocus] = useState(false);
   const [modal, setModal] = useState(null), [confirm, setConfirm] = useState(null);
-  const [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
+  const [immersive, setImmersive] = useState(false), [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
   const [promotion, setPromotion] = useState(null), [toast, setToast] = useState('');
   const [thinking, setThinking] = useState(false), [analysisBusy, setAnalysisBusy] = useState(false), [apiBusy, setApiBusy] = useState(false);
   const [analysis, setAnalysis] = useState(null), [remoteAnalysis, setRemoteAnalysis] = useState(null);
@@ -216,6 +216,16 @@ export default function App() {
   const currentAnalysis = remoteAnalysis || analysis;
   const kindInfo = GAMES[game.kind];
   const setting = (key, value) => setSettings(s => ({ ...s, [key]: value }));
+  // 全屏：优先用浏览器全屏 API，失败就退回专注模式
+  function toggleImmersive() {
+    const root = document.documentElement;
+    if (document.fullscreenElement) {
+      document.exitFullscreen?.().catch(() => {});
+      setImmersive(false);
+      return;
+    }
+    root.requestFullscreen?.().then(() => setImmersive(true)).catch(() => setImmersive(v => !v));
+  }
   const mascotState = match.result ? match.result.winner === 0 ? 'draw' : match.result.winner === settings.side ? 'win' : 'lose' : thinking ? 'think' : match.check ? 'check' : catMood;
 
   function notify(message) {
@@ -459,7 +469,7 @@ export default function App() {
   const goScore = game.kind === 'go' ? match.areaScore(game.dead) : null;
   const apiStatusLabel = apiError ? 'API 异常' : apiConnected ? '落子已验证' : serverInfo.configured || api.model ? 'API 未验证' : '连接 API';
 
-  return <div className={`app-shell ${focus ? 'focus-mode' : ''} ${settings.refraction ? 'refractive' : ''}`} data-kind={game.kind} onPointerDown={() => sound.unlock()}
+  return <div className={`app-shell ${immersive ? 'immersive' : ''} ${focus ? 'focus-mode' : ''} ${settings.refraction ? 'refractive' : ''}`} data-kind={game.kind} onPointerDown={() => sound.unlock()}
     onPointerMove={e => {
       if (!settings.refraction || e.pointerType === 'touch' || !boardWrap.current) return;
       const bounds = boardWrap.current.getBoundingClientRect();
@@ -471,7 +481,7 @@ export default function App() {
     <header className="topbar">
       <button className="brand" onClick={() => startGame()} aria-label="曼波棋社新对局"><RemoteCat mood="avatar" className="brand-cat"/><span><strong>曼波棋社<span className="brand-dot">.</span></strong><small>MAMBO CHESS CLUB</small></span></button>
       <div className="header-note"><Swords size={15}/>四棋一桌<span className="header-note-dot"/>现在专注对弈</div>
-      <div className="header-actions"><button className={`api-status ${apiConnected ? 'connected' : ''} ${apiError ? 'error' : ''}`} title={apiError || '打开 API 设置'} onClick={() => setModal('api')}><span className="status-dot"/><span>{apiStatusLabel}</span><PlugZap size={14}/></button><span className="header-divider"/><IconButton icon={settings.enabled ? Volume2 : VolumeX} label={settings.enabled ? '关闭音效' : '开启音效'} onClick={() => setting('enabled', !settings.enabled)}/><IconButton icon={Settings2} label="偏好设置" onClick={() => setModal('settings')}/></div>
+      <div className="header-actions"><button className={`api-status ${apiConnected ? 'connected' : ''} ${apiError ? 'error' : ''}`} title={apiError || '打开 API 设置'} onClick={() => setModal('api')}><span className="status-dot"/><span>{apiStatusLabel}</span><PlugZap size={14}/></button><span className="header-divider"/><button className={`sound-pill ${settings.enabled ? 'on' : ''}`} onClick={() => setting('enabled', !settings.enabled)} title={settings.enabled ? '关闭全部音效' : '开启全部音效'}>{settings.enabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}<span>{settings.enabled ? '声音开' : '静音'}</span></button><IconButton icon={Settings2} label="偏好设置" onClick={() => setModal('settings')}/></div>
     </header>
     <div className="workspace-heading"><div><div className="eyebrow"><span/> A LITTLE PAUSE. A GOOD MOVE.</div><h1>好棋，慢慢下<span>。</span></h1></div><div className="room-label"><span className="live-dot"/>我的休闲棋室<span className="room-number">NO. 001</span></div></div>
     <main className="workspace">
@@ -494,7 +504,7 @@ export default function App() {
         <div className="sidebar-bottom"><span className="tiny-paw">✦</span><p>胜负之外，<br/>还有一声曼波。</p><span className="micro-text">MAKE A MOVE, MAKE A MOMENT.</span></div>
       </aside>
       <section className="play-area" aria-label="对弈区">
-        <div className="board-heading"><div><h2>{kindInfo.name}</h2><span>{game.kind === 'go' ? `${game.size} × ${game.size}` : game.kind === 'xiangqi' ? '9 × 10' : `${game.size} × ${game.size}`}</span><span className="rule-tag">{game.kind === 'gomoku' ? '自由规则' : game.kind === 'go' ? '数子规则' : '标准棋局'}</span></div><div className="board-top-actions"><IconButton icon={CircleHelp} label="棋局规则" onClick={() => setModal('rules')}/><IconButton icon={focus ? Minimize2 : Maximize2} label={focus ? '退出专注模式' : '专注模式'} onClick={() => setFocus(!focus)}/></div></div>
+        <div className="board-heading"><div><h2>{kindInfo.name}</h2><span>{game.kind === 'go' ? `${game.size} × ${game.size}` : game.kind === 'xiangqi' ? '9 × 10' : `${game.size} × ${game.size}`}</span><span className="rule-tag">{game.kind === 'gomoku' ? '自由规则' : game.kind === 'go' ? '数子规则' : '标准棋局'}</span></div><div className="board-top-actions"><IconButton icon={Maximize2} label="全屏对弈" onClick={toggleImmersive}/><IconButton icon={CircleHelp} label="棋局规则" onClick={() => setModal('rules')}/><IconButton icon={focus ? Minimize2 : Maximize2} label={focus ? '退出专注模式' : '专注模式'} onClick={() => setFocus(!focus)}/></div></div>
         <div className={`taunt-panel taunt-${taunt.kind} ${taunt.active ? 'is-active' : ''}`} key={taunt.sequence} aria-live="polite">
           <div className="taunt-panel-image"><RemoteCat mood={taunt.mood}/></div>
           <div className="taunt-panel-copy"><span>哈基米研究所 · 实时观察</span><strong>{taunt.text}</strong><small>{taunt.active ? '刚刚触发 · 音效同步' : '实时跟随棋局状态'}</small></div>
