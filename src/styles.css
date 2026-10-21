@@ -295,22 +295,35 @@ input, select { min-width: 0; }
 .toggle > span { display: block; width: 15px; height: 15px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px #2c402322; transition: transform .2s var(--ease); }
 .toggle.on { background: #93aa80; }
 .toggle.on > span { transform: translateX(14px); }
-.page-footer { display: flex; justify-content: space-between; align-items: center; gap: 20px; margin-top: 38px; padding: 28px 0 32px; border-top: 1px solid var(--line); color: #a7b09f; font-size: 8px; }
-.page-footer > span { display: flex; align-items: center; gap: 7px; }
+.page-footer { display: flex; flex-direction: column; align-items: center; gap: 16px; margin-top: 38px; padding: 26px 0 30px; border-top: 1px solid var(--line); color: #a7b09f; font-size: 8px; }
+.footer-line { display: flex; justify-content: space-between; align-items: center; gap: 20px; width: 100%; }
+.page-footer > span, .footer-line > span { display: flex; align-items: center; gap: 7px; }
 .page-footer i { display: inline-block; height: 2px; width: 2px; background: #a3ae98; border-radius: 50%; }
 .footer-sparkle { color: #b9ae8e; padding-left: 9px; font-size: 14px; }
-/* 作者署名：右下角，做成可点击的小标签，一眼能看清是谁做的。 */
+/* 作者署名：从右下角提到页脚最上方并放大，一眼能看到是谁做的。 */
 .footer-author {
-  display: inline-flex; align-items: center; gap: 7px;
-  margin-left: 14px; padding: 7px 14px;
-  font-size: 15px; font-weight: 600; letter-spacing: .04em;
+  display: inline-flex; align-items: center; gap: 10px;
+  padding: 11px 24px;
+  font-size: 19px; font-weight: 650; letter-spacing: .05em;
   color: #59703f; background: #f2f6ec;
   border: 1px solid #d3dfc4; border-radius: 999px;
   text-decoration: none; white-space: nowrap;
-  transition: background .18s ease, border-color .18s ease, color .18s ease;
+  box-shadow: 0 6px 18px #4d6b3a1f;
+  transition: background .18s ease, border-color .18s ease, color .18s ease, transform .18s var(--ease);
 }
-.footer-author:hover { color: #38512a; background: #e6eeda; border-color: #b3c69e; }
-.footer-author svg { width: 15px; height: 15px; }
+.footer-author:hover { color: #38512a; background: #e6eeda; border-color: #b3c69e; transform: translateY(-1px); }
+.footer-author svg { width: 20px; height: 20px; }
+/* 「我想看视频」：页脚最下方，本地视频入口。 */
+.watch-video-button {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 9px 20px; font-size: 12px; letter-spacing: .02em;
+  color: #7d8f6c; background: transparent;
+  border: 1px dashed #cdd8bf; border-radius: 999px;
+  transition: color .18s ease, background .18s ease, border-color .18s ease;
+}
+.watch-video-button:hover { color: #4f6b3c; background: #f2f6ec; border-color: #a9bd93; }
+.video-player { display: block; width: 100%; border-radius: 12px; background: #000; }
+.video-caption { margin-top: 12px; font-size: 11px; color: #8fa181; text-align: center; }
 .spin { animation: spin 1.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .full-width { width: 100%; }
@@ -561,11 +574,13 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
   .sound-strip { padding-top: 19px; margin-top: 23px; }
   .sound-strip strong { font-size: 11px; }
   .sound-strip small { font-size: 9px; }
-  .page-footer { margin-top: 29px; padding-top: 18px; padding-bottom: 22px; font-size: 6px; gap: 8px; flex-wrap: wrap; }
-  .page-footer > span { gap: 5px; }
+  .page-footer { margin-top: 29px; padding-top: 18px; padding-bottom: 22px; font-size: 6px; gap: 12px; }
+  .footer-line { gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .page-footer > span, .footer-line > span { gap: 5px; }
   /* 署名在窄屏上略缩并允许换行，避免撑出横向滚动条。 */
-  .footer-author { margin-left: 6px; padding: 5px 10px; font-size: 13px; gap: 5px; }
-  .footer-author svg { width: 13px; height: 13px; }
+  .footer-author { padding: 9px 18px; font-size: 16px; gap: 8px; }
+  .footer-author svg { width: 17px; height: 17px; }
+  .watch-video-button { font-size: 11px; padding: 8px 16px; }
   .modal-body { padding: 22px; }
   .modal-heading h2 { font-size: 18px; }
   .modal-actions { gap: 8px; }
@@ -758,8 +773,11 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 [data-theme="dark"] .scoring-bar { background: var(--surface); border-color: var(--line); color: var(--text); }
 
 /* 作者署名：深色下改用浅色胶囊，保持可见度 */
-[data-theme="dark"] .footer-author { color: #bcd9c6; background: #1f2a24; border-color: #33473b; }
+[data-theme="dark"] .footer-author { color: #bcd9c6; background: #1f2a24; border-color: #33473b; box-shadow: 0 6px 18px #0000004d; }
 [data-theme="dark"] .footer-author:hover { color: #d8ecdf; background: #26332c; border-color: #43594b; }
+[data-theme="dark"] .watch-video-button { color: #9db0a2; border-color: #3b4d42; }
+[data-theme="dark"] .watch-video-button:hover { color: #cfe3d5; background: #1f2a24; border-color: #4b6152; }
+[data-theme="dark"] .video-caption { color: #8fa79a; }
 
 /* API 状态按钮 */
 [data-theme="dark"] .api-status { background: var(--surface-soft); color: var(--text); border-color: var(--line); }

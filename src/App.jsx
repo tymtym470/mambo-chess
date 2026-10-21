@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Flag, Github,
+  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Film, Flag, Github,
   Lightbulb, LoaderCircle, Maximize2, Minimize2, MonitorSmartphone, Moon, MoreHorizontal, PlugZap, Plus,
   RefreshCw, RotateCcw, RotateCw, Settings2, ShieldCheck, SkipForward, Sparkles, Sun, Swords, Users,
   Volume2, VolumeX, X,
@@ -9,7 +9,10 @@ import Board, { GameGlyph } from './Board.jsx';
 import { advance, CHESS_GLYPHS, freshGame, GAMES, LEVELS, Match, sideName, undo } from './game.js';
 import { MAMBO_TAUNT_LINE, sound } from './audio.js';
 import { readStorage, validateGame, writeStorage } from './storage.js';
-import { MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_SOURCE, MAMBO_CAT_VARIANTS } from './mascot.js';
+import { assetUrl, MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_SOURCE, MAMBO_CAT_VARIANTS } from './mascot.js';
+
+// 本地视频：放在 public/video/ 下，走 assetUrl 才能跟着 base 一起部署到子目录。
+const WATCH_VIDEO = { src: assetUrl('video/yangyuheng-dance.mp4'), caption: '阳瑜恒 · 跳舞 · 约 15 秒' };
 
 const DEFAULT_SETTINGS = {
   mode: 'ai', level: 3, side: 1, provider: 'local', enabled: true, voice: true, volume: .55,
@@ -505,7 +508,12 @@ export default function App() {
         <div className="sound-strip"><span className="sound-strip-icon"><AudioLines size={18}/></span><div><strong>曼波声音</strong><small>{settings.enabled && settings.voice ? '语音、评论与棋局音效已启用' : '安静下棋，也很好'}</small></div><div className="sound-strip-controls"><Toggle value={settings.music} label="曼波背景音乐" onChange={v => setting('music', v)}/><Toggle value={settings.enabled && settings.voice} label="曼波语音开关" onChange={v => { setting('voice', v); if (v) setting('enabled', true); }}/></div></div>
       </aside>
     </main>
-    <footer className="page-footer"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。{/* 作者署名：右下角可点击标签，点击跳转 GitHub 主页。 */}<a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · 点击打开 GitHub 主页"><Github size={15} aria-hidden="true"/>作者 TYM</a></span></footer>
+    <footer className="page-footer">
+      {/* 作者署名：从右下角提到页脚最上方，并放大成醒目标签。 */}
+      <a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · 点击打开 GitHub 主页"><Github size={20} aria-hidden="true"/>作者 TYM</a>
+      <div className="footer-line"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。</span></div>
+      <button className="watch-video-button" onClick={() => setModal('video')}><Film size={15}/>我想看视频</button>
+    </footer>
     <div className="toast-host">{toast && <div role="status" className="toast"><span>{toast}</span><button aria-label="关闭提示" onClick={() => setToast('')}><X size={14}/></button></div>}</div>
     {modal === 'api' && <ApiModal api={api} serverInfo={serverInfo} lastError={apiError} lastDetails={apiDetails}
       testPosition={{ position: match.summary(), legal: match.legalMoves().map(move => ({ id: move.id, label: move.label })) }}
@@ -533,6 +541,10 @@ export default function App() {
     </Modal>}
     {modal === 'engine' && <Modal title="选择 AI 引擎" onClose={() => setModal(null)}><div className="engine-options"><button className={settings.provider === 'local' ? 'active' : ''} onClick={() => { setting('provider', 'local'); setModal(null); }}><Cpu size={23}/><div><strong>内置本地战术引擎</strong><span>已嵌入项目 · 五级难度 · 无需密钥</span></div>{settings.provider === 'local' && <Check size={18}/>}</button><button className={settings.provider === 'api' ? 'active' : ''} onClick={() => { if (!api.key && !serverInfo.configured && !api.baseUrl.startsWith('http://localhost') && !api.baseUrl.startsWith('http://127.0.0.1')) { setModal('api'); return; } setting('provider', 'api'); setModal(null); }}><PlugZap size={23}/><div><strong>模型 API 对弈</strong><span>{api.model} · 合法着校验</span></div>{settings.provider === 'api' && <Check size={18}/>}</button></div><button className="text-button full-width" onClick={() => setModal('api')}>配置模型连接<ChevronRight size={15}/></button></Modal>}
     {modal === 'board' && <Modal title="棋盘操作" onClose={() => setModal(null)}><div className="board-menu"><button onClick={() => { setModal(null); guardChange(() => startGame()); }}><Plus size={18}/>开始新对局<ChevronRight size={16}/></button><button onClick={() => { setFlipped(f => !f); setModal(null); }}><RotateCw size={18}/>翻转棋盘<ChevronRight size={16}/></button>{game.kind === 'go' && <button onClick={() => { setModal(null); performMove('pass'); }} disabled={!!match.result || match.scoring || thinking}><SkipForward size={18}/>停一手<ChevronRight size={16}/></button>}<button onClick={() => { setModal(null); setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })) }); }} disabled={!!match.result || thinking || !game.moves.length}><Flag size={18}/>认输<ChevronRight size={16}/></button></div></Modal>}
+    {modal === 'video' && <Modal title="我想看视频" onClose={() => setModal(null)} wide>
+      <video className="video-player" src={WATCH_VIDEO.src} controls autoPlay playsInline preload="metadata"/>
+      <p className="video-caption">{WATCH_VIDEO.caption}</p>
+    </Modal>}
     {modal === 'rules' && <Modal title={`${kindInfo.name} · 对局约定`} onClose={() => setModal(null)}><div className="rules-copy">
       {game.kind === 'gomoku' && <p>黑棋先行，双方轮流在交叉点落子。横、竖、斜线连续五子或以上获胜。本棋室采用自由五子棋，不设三三、四四和长连禁手。</p>}
       {game.kind === 'go' && <><p>黑棋先行。棋块没有气时被提走，禁止自杀与重复全盘局面。双方连续停一手进入数子，白贴 6.5 目。</p><p>本地 AI 是内置休闲战术引擎，不代替专业围棋引擎。</p></>}

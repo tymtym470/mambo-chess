@@ -7,3 +7,7 @@ test-results/
 # 启动器编译中间产物（.exe 本身要提交，用户下载后可直接双击）
 *.pdb
 *.obj
+
+# AOCI agent host integration (machine-bound; do not commit)
+.codex/config.toml
+.codex/config.toml.backup.*
