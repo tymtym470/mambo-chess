@@ -1,0 +1,54 @@
+#AOCI-CODE-VOLUME: 1
+
+===F:/codex/mambo-chess/===
+.env.example[FC6T]: F:本地服务的环境变量样例：端口、模型地址、模型名与密钥 | R:code:server.mjs | A:PORT 默认 5176，AI_* 仅服务端读取 | S:VITE_ 前缀的变量会被注入客户端包，等于把密钥发到浏览器
+.gitattributes[FV4T]: F:声明全仓文本按 LF 检出，保证任何平台 checkout 字节一致 | R:- | A:- | S:-
+.gitignore[FV3T]: F:排除依赖、构建产物、密钥文件、日志与测试结果，以及启动器编译中间件 | R:- | A:- | S:-
+AGENTS.md[SG5S]: F:放置 aoci init 生成的仓库级认知接入区块，规定 agent 开工读索引与收尾维护的方式 | R:code:README.md | A:- | S:aoci:begin 与 aoci:end 之间由 aoci 生成并随 Guide 演进，手改会破坏区块校验
+ASSETS.md[SG7T]: F:逐项登记 public/mambo 与 public/audio 素材的来源、未授权状态，并给出权利人下架通道 | R:code:LICENSE | A:- | S:素材未获授权且不在 MIT 范围，二次分发前必须替换
+LICENSE[SG8T]: F:MIT 许可证正文，末尾补一段素材授权说明 | R:code:ASSETS.md | A:- | S:MIT 只覆盖代码，public 下的图片与音频被明确排除
+README.en.md[SG5S]: F:README 的英文对照版，章节结构与中文版一一对应 | R:code:README.md | A:- | S:与 README.md 必须同步改，只改一边会让双语入口描述分叉
+README.md[SG8M]: F:项目门面与操作手册：四种棋、本地引擎与模型 API 双路径、启动方式、目录结构、测试命令与素材授权 | R:code:package.json,code:server.mjs,code:src/App.jsx,code:ASSETS.md | A:- | S:在线版是纯静态托管，没有 server.mjs，模型 API 对弈与解读必然不可用；文中测试条数会过期
+index.html[EU8T]: F:Vite 单页入口，挂载 #root 并引用 src/main.jsx，声明中文语言与图标 | R:code:src/main.jsx | A:- | S:图标等资源用 ./ 相对路径，配合 vite base:'./'，否则 Pages 子目录下 404
+launcher-stop.cs[EU6T]: F:编译成停止曼波棋社.exe 的隐形窗口外壳，转调 scripts/stop-mambo.ps1 | R:code:scripts/stop-mambo.ps1 | A:- | S:-
+launcher.cs[EU7T]: F:编译成启动曼波棋社.exe 的隐形窗口外壳：无黑框、图标内嵌，转调 scripts/start-mambo.ps1 并透传参数 | R:code:scripts/start-mambo.ps1,code:scripts/build-launcher.mjs | A:- | S:CreateNoWindow 是双击不闪黑框的唯一实现点，启动逻辑只在 ps1 里
+package-lock.json[FV5L]: F:锁定依赖树的精确版本，供 CI 用 npm ci 复现安装 | R:code:package.json | A:- | S:-
+package.json[FV9T]: F:声明包元信息、四种棋规则上游依赖、Vite 与 Playwright 开发依赖以及全部 npm 脚本 | R:code:server.mjs,code:src/game.js,code:scripts/runtime-info.mjs,code:vite.config.js | A:dev 与 start 都跑 server.mjs；test 跑 node --test tests/*.test.mjs | S:\"type\":\"module\" 决定全仓 import 语法；--env-file-if-exists 要求 Node ≥ 20
+server.mjs[EN9S]: F:本地服务：静态托管 dist 或挂 Vite 中间件、限制仅本机访问、维护页面租约自动关机、代理模型 API 并脱敏 | R:code:server/ai-api.mjs,code:src/game.js,code:scripts/runtime-info.mjs,code:package.json | A:GET /api/config，POST /api/models 与 /api/ai，租约走 /api/lease | S:Host 非本机一律 403；生产模式租约清空 1.8 秒后自杀；端口占用自增(<5200)，MAMBO_STRICT_PORT=1 才报错；密钥先脱敏再序列化
+vite.config.js[FV7T]: F:Vite 构建配置：相对 base 与 dist 输出目录 | R:code:package.json,code:index.html | A:base 为 './'，且不引 @vitejs/plugin-react | S:base 用相对路径，否则 Pages 子目录 404
+停止曼波棋社.bat[EU4T]: F:双击即可停止服务的批处理入口，隐藏窗口转调停服脚本 | R:code:scripts/stop-mambo.ps1 | A:- | S:-
+启动曼波棋社.bat[EU5T]: F:双击启动的批处理入口，转调 scripts/start-mambo.ps1 | R:code:scripts/start-mambo.ps1,code:launcher.cs | A:- | S:-
+
+===F:/codex/mambo-chess/.github/workflows/===
+deploy-pages.yml[OV8T]: F:推送 main 时构建静态站点、跑单元与浏览器冒烟测试，再发布到 GitHub Pages | R:code:package.json,code:scripts/check-browser.mjs | A:on push main 或 workflow_dispatch；build 完成后才 deploy | S:必须先 npm run build 再跑浏览器冒烟；CI 无系统 Edge，要另装 chromium；产物需 touch .nojekyll
+
+===F:/codex/mambo-chess/public/===
+mambo-icon.svg[ZU2T]: F:项目自绘的应用图标，也是表情图加载失败时的兜底图 | R:code:src/mascot.js | A:- | S:-
+
+===F:/codex/mambo-chess/scripts/===
+api-test-harness.mjs[TQ7T]: F:测试夹具：起假上游服务并拉起生产模式 app，提供 post 与 close，并为缺失的 dist 补占位 | R:code:server.mjs,code:scripts/check-browser.mjs,code:scripts/check-api-browser.mjs | A:startHarness(handler) 返回 base 与 upstreamUrl | S:dist/ 不在版本库，这里补占位 index.html 并结束时删除；测试不能依赖本地构建过
+build-launcher.mjs[XV6T]: F:用系统自带 .NET Framework 的 csc.exe 把两个启动器源码编译成带图标的 exe | R:code:launcher.cs,code:launcher-stop.cs | A:npm run build:launcher | S:源码先复制到临时目录再编译，避免 pdb 与 obj 落在项目根
+capture-screenshots.mjs[XV3S]: F:启动生产服务，用固定走法给四种棋、设置面板与深色模式截图，再用 Pillow 压成 256 色 | R:code:server.mjs,code:package.json | A:npm run screenshots，需先 npm run build | S:-
+check-api-browser.mjs[TQ7S]: F:API 全流程浏览器测试：拉模型、试走拒绝散文、保存、真实落子、失败暂停、重试与旧请求取消 | R:code:scripts/api-test-harness.mjs,code:src/App.jsx,code:server/ai-api.mjs | A:npm run test:api-browser | S:切配置必须 abort 旧上游请求，否则旧响应会落子
+check-browser.mjs[TQ8S]: F:四棋种交互、AI 对弈、围棋数子、API 预设、主题与音效开关的浏览器冒烟测试 | R:code:scripts/api-test-harness.mjs,code:src/App.jsx | A:npm run test:browser；设 BASE_URL 可跳过自带服务 | S:必须查 naturalWidth>0，只断言 src 会漏掉子目录 404；深色背景写死 rgb(18, 23, 26)
+check-launcher.mjs[TQ6T]: F:启动器行为测试：占用端口不复用、版本一致不重启、源码变更后重启，且只停本项目进程 | R:code:scripts/start-mambo.ps1,code:scripts/stop-mambo.ps1,code:scripts/runtime-info.mjs | A:npm run test:launcher，仅 Windows | S:-
+check-models-api.mjs[TQ4T]: F:单一入口聚合跑模型接口相关三组测试 | R:code:package.json | A:npm run test:models | S:-
+check-production-lease.mjs[TR7T]: F:生产模式租约测试：心跳保活期间不退出，关闭租约后干净退出 | R:code:server.mjs | A:npm run test:lease | S:-
+runtime-info.mjs[CV8T]: F:由源码与构建产物字节算出 appId、workspaceId 与 12 位 revision，供服务、启动器与测试共用 | R:code:server.mjs,code:scripts/start-mambo.ps1 | A:runtimeInfo(root) 返回 appId 与 revision | S:revision 只覆盖六个文件，改其它前端文件版本不变、启动器不会重启
+start-mambo.ps1[OR8T]: F:识别已有实例与端口，必要时后台拉起生产服务并打开带 build 参数的页面 | R:code:server.mjs,code:scripts/runtime-info.mjs,code:scripts/stop-mambo.ps1 | A:start-mambo.ps1 [-NoBrowser]，可用 MAMBO_PORT 指定起始端口 | S:必须同时匹配 pid、命令行与监听端口，绝不终止无关占用者；端口顺延最多 25 个
+stop-mambo.ps1[OR6T]: F:只停止命令行里带本项目 server.mjs 的 node 进程 | R:code:scripts/start-mambo.ps1 | A:npm run stop | S:-
+
+===F:/codex/mambo-chess/server/===
+ai-api.mjs[IN9M]: F:模型接口层：Chat Completions 与 Responses 双协议适配、落子解析与合法校验、截断与纠正重试、密钥脱敏 | R:code:server.mjs,code:src/game.js | A:requestAi 是唯一对外入口，内部按 action 分 test、move、analyze | S:直连 api.deepseek.com 必须关思考，否则推理吃满预算把落子截断；一个回合只纠正一次
+
+===F:/codex/mambo-chess/src/===
+App.jsx[AU9L]: F:主界面与状态机：棋种难度执子、AI 回合调度、API 连接与诊断、主题、提示、数子、战报、作者与视频入口 | R:code:src/game.js,code:src/ai.js,code:src/audio.js,code:src/storage.js,code:src/mascot.js,code:src/Board.jsx,code:server/ai-api.mjs | A:默认导出 App，服务端契约 /api/ai 与 /api/config 在此落地 | S:API Key 永不写 localStorage；AI 落子必须过 advance() 规则校验，失败即暂停；改配置要 abort 旧请求
+Board.jsx[AU8T]: F:棋盘渲染：四种棋的 SVG 棋盘、棋子、选中与合法点、提示、最后一步、序号、翻转与坐标轴 | R:code:src/game.js | A:Board 接收 match 与 onCell 等渲染 props | S:翻转只改显示，hit-test 与 legalMoves 始终用未翻转坐标
+ai.js[KA9M]: F:内置战术引擎：五子棋棋形评估与迭代加深、围棋气与提子启发、象棋与国际象棋 alpha-beta 搜索，五档难度 | R:code:src/game.js,code:src/ai.worker.js | A:analyze 是唯一入口，返回 move、suggestions、balance、title、summary | S:搜索以 performance.now 硬截止，超时抛 budget 后回落上一层，不采用不完整深度
+ai.worker.js[MP6T]: F:AI 引擎的 Web Worker 外壳，把分析放到主线程之外执行 | R:code:src/ai.js,code:src/App.jsx | A:onmessage 收 game 与 level，回 postMessage 结果或错误 | S:-
+audio.js[DU7S]: F:音效与语音管理器：韦伯合成音、按事件分组的语音轮换、曼波吐槽、前 30 秒循环背景乐 | R:code:src/mascot.js,code:src/App.jsx | A:sound 单例提供 configure、play、comment | S:-
+game.js[DB9M]: F:四棋种规则适配层：统一坐标、枚举合法着法、落子与胜负判定、围棋数子与悔棋 | R:code:src/App.jsx,code:src/ai.js,code:src/Board.jsx | A:Match 类与 advance、undo 是唯一入口 | S:围棋数子只认完全被单色包围且不触边的区域，开放地算中性
+main.jsx[EU7T]: F:React 挂载入口与错误边界：崩溃时给恢复页 | R:code:src/App.jsx,code:src/styles.css | A:渲染 App，重建前清掉 mambo-current | S:-
+mascot.js[CU6T]: F:素材基址推导与曼波表情图映射，兼作图片兜底 | R:code:src/App.jsx,code:public/mambo-icon.svg | A:ASSET_BASE 与 assetUrl 统一拼路径 | S:手写路径必须走 assetUrl，否则子目录部署 404
+storage.js[PD7T]: F:localStorage 读写封装与对局存档校验 | R:code:src/game.js | A:readStorage、writeStorage、validateGame | S:校验必须重建 Match，非法存档回退新局
+styles.css[CU8L]: F:全部界面样式：设计变量、三栏工作区、棋盘与棋子、面板与弹窗、深浅主题及响应式断点 | R:code:src/App.jsx,code:src/Board.jsx | A:纯 CSS 变量与 data-kind 钩子驱动，无 JS 接口 | S:-

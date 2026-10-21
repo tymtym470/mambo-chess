@@ -435,7 +435,7 @@ export default function App() {
   const goScore = game.kind === 'go' ? match.areaScore(game.dead) : null;
   const apiStatusLabel = apiError ? 'API 异常' : apiConnected ? '落子已验证' : serverInfo.configured || api.model ? 'API 未验证' : '连接 API';
 
-  return <div className={`app-shell ${focus ? 'focus-mode' : ''} ${settings.refraction ? 'refractive' : ''}`} onPointerDown={() => sound.unlock()}
+  return <div className={`app-shell ${focus ? 'focus-mode' : ''} ${settings.refraction ? 'refractive' : ''}`} data-kind={game.kind} onPointerDown={() => sound.unlock()}
     onPointerMove={e => {
       if (!settings.refraction || e.pointerType === 'touch' || !boardWrap.current) return;
       const bounds = boardWrap.current.getBoundingClientRect();
@@ -506,14 +506,14 @@ export default function App() {
           <button className="api-analyze-button" onClick={remoteAnalyze} disabled={apiBusy}><Sparkles size={15}/>{apiBusy ? '模型正在分析' : 'AI 深度解读'}{apiBusy ? <LoaderCircle size={14} className="spin"/> : <ChevronRight size={15}/>}</button>
         </div>
         <div className="sound-strip"><span className="sound-strip-icon"><AudioLines size={18}/></span><div><strong>曼波声音</strong><small>{settings.enabled && settings.voice ? '语音、评论与棋局音效已启用' : '安静下棋，也很好'}</small></div><div className="sound-strip-controls"><Toggle value={settings.music} label="曼波背景音乐" onChange={v => setting('music', v)}/><Toggle value={settings.enabled && settings.voice} label="曼波语音开关" onChange={v => { setting('voice', v); if (v) setting('enabled', true); }}/></div></div>
+        {/* 作者署名与视频入口：放在「曼波声音」下面，页脚只留站点标语。 */}
+        <div className="creator-strip">
+          <a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · 点击打开 GitHub 主页"><Github size={18} aria-hidden="true"/>作者 TYM</a>
+          <button className="watch-video-button" onClick={() => setModal('video')}><Film size={15}/>我想看视频</button>
+        </div>
       </aside>
     </main>
-    <footer className="page-footer">
-      {/* 作者署名：从右下角提到页脚最上方，并放大成醒目标签。 */}
-      <a className="footer-author" href="https://github.com/tymtym470" target="_blank" rel="noreferrer noopener" title="作者 TYM · 点击打开 GitHub 主页"><Github size={20} aria-hidden="true"/>作者 TYM</a>
-      <div className="footer-line"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。</span></div>
-      <button className="watch-video-button" onClick={() => setModal('video')}><Film size={15}/>我想看视频</button>
-    </footer>
+    <footer className="page-footer"><span>MAMBO CLUB <i/> 落子有声，陪伴无声。</span><span>把这一刻，留给棋盘。</span></footer>
     <div className="toast-host">{toast && <div role="status" className="toast"><span>{toast}</span><button aria-label="关闭提示" onClick={() => setToast('')}><X size={14}/></button></div>}</div>
     {modal === 'api' && <ApiModal api={api} serverInfo={serverInfo} lastError={apiError} lastDetails={apiDetails}
       testPosition={{ position: match.summary(), legal: match.legalMoves().map(move => ({ id: move.id, label: move.label })) }}

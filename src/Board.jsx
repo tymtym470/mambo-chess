@@ -14,7 +14,7 @@ export function GameGlyph({ kind }) {
 export default function Board({ match, selected, onCell, hint, flipped, numbers, disabled, dead = [] }) {
   const { kind, size, rows, cells, log } = match;
   const isChess = kind === 'chess', xq = kind === 'xiangqi';
-  const padding = isChess ? 28 : 44;
+  const padding = isChess ? 28 : kind === 'go' ? 34 : 44;
   const step = (640 - padding * 2) / (isChess ? size : size - 1);
   const height = isChess ? 640 : padding * 2 + (rows - 1) * step;
   const convert = ([x, y]) => flipped ? [size - 1 - x, rows - 1 - y] : [x, y];
