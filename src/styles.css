@@ -321,17 +321,6 @@ input, select { min-width: 0; }
 }
 .footer-author:hover { color: #38512a; background: #e6eeda; border-color: #b3c69e; transform: translateY(-1px); }
 .footer-author svg { width: 18px; height: 18px; }
-/* 「我想看视频」：本地视频入口，就在作者署名下面。 */
-.watch-video-button {
-  display: inline-flex; align-items: center; gap: 8px;
-  padding: 9px 20px; font-size: 12px; letter-spacing: .02em;
-  color: #7d8f6c; background: transparent;
-  border: 1px dashed #cdd8bf; border-radius: 999px;
-  transition: color .18s ease, background .18s ease, border-color .18s ease;
-}
-.watch-video-button:hover { color: #4f6b3c; background: #f2f6ec; border-color: #a9bd93; }
-.video-player { display: block; width: 100%; border-radius: 12px; background: #000; }
-.video-caption { margin-top: 12px; font-size: 11px; color: #8fa181; text-align: center; }
 .spin { animation: spin 1.4s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .full-width { width: 100%; }
@@ -590,7 +579,6 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
   .creator-strip { margin-top: 16px; padding-top: 15px; gap: 9px; }
   .footer-author { padding: 8px 16px; font-size: 15px; gap: 7px; }
   .footer-author svg { width: 16px; height: 16px; }
-  .watch-video-button { font-size: 11px; padding: 8px 16px; }
   .modal-body { padding: 22px; }
   .modal-heading h2 { font-size: 18px; }
   .modal-actions { gap: 8px; }
@@ -785,9 +773,6 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 /* 作者署名：深色下改用浅色胶囊，保持可见度 */
 [data-theme="dark"] .footer-author { color: #bcd9c6; background: #1f2a24; border-color: #33473b; box-shadow: 0 6px 18px #0000004d; }
 [data-theme="dark"] .footer-author:hover { color: #d8ecdf; background: #26332c; border-color: #43594b; }
-[data-theme="dark"] .watch-video-button { color: #9db0a2; border-color: #3b4d42; }
-[data-theme="dark"] .watch-video-button:hover { color: #cfe3d5; background: #1f2a24; border-color: #4b6152; }
-[data-theme="dark"] .video-caption { color: #8fa79a; }
 
 /* API 状态按钮 */
 [data-theme="dark"] .api-status { background: var(--surface-soft); color: var(--text); border-color: var(--line); }
