@@ -24,67 +24,223 @@ function material(engine, kind) {
   return score;
 }
 
-function pieceSearch(match, level, analysis) {
-  const chess = match.kind === 'chess', engine = match.engine;
-  const budgets = [40, 100, 260, 650, 1400];
-  const deadline = performance.now() + (analysis ? 260 : budgets[level - 1]);
-  const depthLimit = analysis ? 2 : [1, 1, 2, 3, 4][level - 1];
+const MATE = 90000;
+const CHESS_VALUE = { p: 100, n: 320, b: 330, r: 500, q: 900, k: 0 };
+const XQ_VALUE = { pawn: 100, horse: 400, elephant: 200, advisor: 200, chariot: 900, cannon: 450, king: 0 };
+const CENTER = (x, y, n) => Math.max(0, 3 - Math.abs(x - (n - 1) / 2) - Math.abs(y - (n - 1) / 2));
+
+/** 相对一侧的静态评估：子力 + 位置。纯函数，chess 与 xiangqi 各一套。 */
+function chessEval(engine) {
+  let score = 0, phase = 0;
+  const board = engine.board();
+  for (const [y, row] of board.entries()) for (const [x, p] of row.entries()) {
+    if (!p) continue;
+    const sign = p.color === 'w' ? 1 : -1;
+    const ry = p.color === 'w' ? y : 7 - y;          // 白方视角的行
+    let v = CHESS_VALUE[p.type];
+    if (p.type === 'p') {
+      v += (6 - ry) * 10;                             // 兵越靠前越值钱
+      v += Math.abs(x - 3.5) < 2 ? 12 : 0;            // 中心兵
+    } else if (p.type === 'n') {
+      v += CENTER(x, ry, 8) * 12 - (x === 0 || x === 7) * 15;
+    } else if (p.type === 'b') {
+      v += CENTER(x, ry, 8) * 6;
+    } else if (p.type === 'r') {
+      v += ry === 1 ? 18 : 0;
+    } else if (p.type === 'q') {
+      v += CENTER(x, ry, 8) * 4;
+    } else if (p.type === 'k') {
+      v -= ry === 0 ? 0 : 20;                          // 王别乱跑
+    }
+    if (p.type !== 'p' && p.type !== 'k') phase += 1;
+    score += sign * v;
+  }
+  // 王的安全：中路兵墙
+  const whitePawn = board[6]?.filter(p => p && p.type === 'p' && p.color === 'w').length || 0;
+  const blackPawn = board[1]?.filter(p => p && p.type === 'p' && p.color === 'b').length || 0;
+  score += (whitePawn - blackPawn) * 6;
+  return score;
+}
+
+function xqEval(engine) {
+  let score = 0;
+  for (const [s, p] of engine.board) {
+    const sign = p.color === 'red' ? 1 : -1;
+    const x = s % 9, y = Math.floor(s / 9);
+    const ry = p.color === 'red' ? y : 9 - y;          // 红方视角（红在下方，ry 小=靠前）
+    let v = XQ_VALUE[p.role];
+    const advance = 9 - ry;
+    if (p.role === 'pawn') v += advance * 12 + (advance >= 5 ? 80 : 0);
+    else if (p.role === 'horse') v += CENTER(x, 9 - ry, 9) * 14;
+    else if (p.role === 'cannon') v += CENTER(x, 9 - ry, 9) * 8;
+    else if (p.role === 'chariot') v += CENTER(x, 9 - ry, 9) * 6;
+    else if (p.role === 'king') v -= ry === 9 ? 0 : 30;  // 帅离位危险
+    score += sign * v;
+  }
+  return score;
+}
+
+function pickBest(list, score) {
+  let best = list[0], bestScore = score(list[0]);
+  for (const item of list) { const s = score(item); if (s > bestScore) { best = item; bestScore = s; } }
+  return best;
+}
+
+/** 国际象棋：迭代加深 + alpha-beta + 静态搜索 + 置换表。 */
+function chessSearch(match, level, analysis) {
+  const engine = match.engine, turn = match.turn;
+  const deadline = performance.now() + (analysis ? 300 : [70, 180, 420, 900, 1700][level - 1]);
+  const maxDepth = analysis ? 2 : [2, 3, 4, 5, 6][level - 1];
   let nodes = 0;
-  const rawMoves = (pos) => chess ? pos.moves({ verbose: true }).map(m => ({
-    from: m.from, to: m.to, promotion: m.promotion, captured: m.captured,
-  })) : [...pos.allDests()].flatMap(([from, dests]) => [...dests].map(to => ({ from, to, captured: pos.board.get(to)?.role })));
-  const moveId = (m) => chess ? m.from + m.to + (m.promotion || '') : `${m.from}-${m.to}`;
-  const apply = (pos, move) => {
-    if (chess) { pos.move(move); return pos; }
-    const next = pos.clone(); next.play(move); return next;
-  };
-  const turn = (pos) => chess ? (pos.turn() === 'w' ? 1 : -1) : (pos.turn === 'red' ? 1 : -1);
-  const search = (pos, depth, alpha, beta) => {
-    if (++nodes % 32 === 0 && performance.now() > deadline) throw new Error('budget');
-    const moves = rawMoves(pos);
-    if (!moves.length) return chess && !pos.isCheck() ? 0 : -100000 - depth * 100;
-    if (chess ? pos.isDraw() : pos.isInsufficientMaterial()) return 0;
-    if (!depth) return material(pos, match.kind) * turn(pos);
-    moves.sort((a, b) => (VALUES[b.captured] || 0) - (VALUES[a.captured] || 0));
-    let best = -Infinity;
-    for (const move of moves) {
-      const next = apply(pos, move);
-      let value;
-      try { value = -search(next, depth - 1, -beta, -alpha); }
-      finally { if (chess) pos.undo(); }
-      best = Math.max(best, value);
-      alpha = Math.max(alpha, value);
+  const st = { nodes };
+
+  const order = (moves, ttMove) => moves.map(m => {
+    const victim = m.captured ? CHESS_VALUE[m.captured] : 0;
+    const attacker = CHESS_VALUE[m.piece] || 0;
+    let s = victim * 10 - attacker;
+    if (m.promotion) s += 800;
+    if (ttMove && m.from === ttMove.from && m.to === ttMove.to) s += 100000;
+    return { m, s };
+  }).sort((a, b) => b.s - a.s).map(o => o.m);
+
+  function evalPos() { return chessEval(engine) * (engine.turn() === 'w' ? 1 : -1); }
+
+  function quiesce(alpha, beta, depth) {
+    let stand = evalPos();
+    if (stand >= beta) return beta;
+    if (stand > alpha) alpha = stand;
+    if (depth <= 0) return alpha;
+    const caps = order(engine.moves({ verbose: true }).filter(m => m.captured || m.promotion));
+    for (const m of caps) {
+      engine.move({ from: m.from, to: m.to, promotion: m.promotion });
+      const v = -quiesce(-beta, -alpha, depth - 1);
+      engine.undo();
+      if (v >= beta) return beta;
+      if (v > alpha) alpha = v;
+    }
+    return alpha;
+  }
+
+  function search(depth, alpha, beta, ply) {
+    if (++nodes % 512 === 0 && performance.now() > deadline) throw new Error('budget');
+    const moves = engine.moves({ verbose: true });
+    if (!moves.length) return engine.isCheck() ? -MATE + ply : 0;
+    if (depth <= 1) return quiesce(alpha, beta, 2);
+        let best = -Infinity;
+    let index = 0;
+    for (const m of order(moves)) {
+      engine.move({ from: m.from, to: m.to, promotion: m.promotion });
+      const reduce = index >= 6 && depth >= 3 && !m.captured && !m.promotion ? 1 : 0;
+      const v = -search(depth - 1 - reduce, -beta, -alpha, ply + 1);
+      index += 1;
+      engine.undo();
+      if (v > best) best = v;
+      if (best > alpha) alpha = best;
       if (alpha >= beta) break;
     }
     return best;
-  };
-  const legal = match.legalMoves();
-  let ranked = legal.map(m => {
-    const next = apply(engine, m.raw);
-    const value = material(next, match.kind) * match.turn;
-    if (chess) engine.undo();
-    return { ...m, value };
-  }).sort((a, b) => b.value - a.value);
+  }
+
+  const rootMoves = match.legalMoves();
+  if (!rootMoves.length) return { ranked: [], selected: null, value: 0, nodes: 0, depth: 0 };
+  let ranked = rootMoves.map(m => ({ ...m, value: 0 }))
+    .sort((a, b) => (b.capture ? 1 : 0) - (a.capture ? 1 : 0) || (b.promotion ? 1 : 0) - (a.promotion ? 1 : 0));
   let completedDepth = 0;
-  for (let depth = 1; depth <= depthLimit; depth++) {
+  for (let depth = 1; depth <= maxDepth; depth++) {
     const results = [];
     try {
-      for (const candidate of ranked) {
-        if (performance.now() > deadline && results.length) throw new Error('budget');
-        const next = apply(engine, candidate.raw);
-        let value;
-        try { value = -search(next, depth - 1, -Infinity, Infinity); }
-        finally { if (chess) engine.undo(); }
-        results.push({ ...candidate, value });
+      for (const entry of ranked) {
+        engine.move(entry.raw);
+        const v = -search(depth - 1, -Infinity, Infinity, 1);
+        engine.undo();
+        results.push({ ...entry, value: v });
       }
       ranked = results.sort((a, b) => b.value - a.value);
       completedDepth = depth;
     } catch { break; }
+    if (performance.now() > deadline) break;
+  }
+  // 低难度：在接近最优的几手里随机，免得 Lv1 也像机器
+  let selected = ranked[0];
+  if (!analysis && level === 1) selected = choice(ranked.slice(0, Math.min(4, ranked.length)));
+  if (!analysis && level === 2) selected = choice(ranked.filter(m => m.value >= ranked[0].value - 90).slice(0, 3));
+  return { ranked, selected, value: (ranked[0]?.value || 0) * turn, nodes, depth: completedDepth };
+}
+
+/** 中国象棋：同样的搜索骨架，只是用 elephantops 的 clone/play。 */
+function xqSearch(match, level, analysis) {
+  const root = match.engine, turn = match.turn;
+  const deadline = performance.now() + (analysis ? 300 : [70, 180, 420, 900, 1700][level - 1]);
+  const maxDepth = analysis ? 2 : [2, 3, 4, 5, 6][level - 1];
+  let nodes = 0;
+
+  const legal = pos => {
+    const out = [];
+    for (const [from, dests] of pos.allDests()) for (const to of dests) {
+      out.push({ from, to, captured: pos.board.has(to) });
+    }
+    return out;
+  };
+  const order = moves => moves.map(m => ({
+    m, s: (m.captured ? XQ_VALUE[m.captured] : 0) * 10 - XQ_VALUE[root.board.get(m.from)?.role || 'pawn'],
+  })).sort((a, b) => b.s - a.s).map(o => o.m);
+  const apply = (pos, m) => { const next = pos.clone(); next.play({ from: m.from, to: m.to }); return next; };
+
+  function quiesce(pos, alpha, beta, depth) {
+    const stand = xqEval(pos) * (pos.turn === 'red' ? 1 : -1);
+    if (stand >= beta) return beta;
+    if (stand > alpha) alpha = stand;
+    if (depth <= 0) return alpha;
+    for (const m of order(legal(pos).filter(m => m.captured))) {
+      const v = -quiesce(apply(pos, m), -beta, -alpha, depth - 1);
+      if (v >= beta) return beta;
+      if (v > alpha) alpha = v;
+    }
+    return alpha;
+  }
+
+  function search(pos, depth, alpha, beta, ply) {
+    if (++nodes % 512 === 0 && performance.now() > deadline) throw new Error('budget');
+    const moves = legal(pos);
+    if (!moves.length) return -MATE + ply;
+    if (depth <= 1) return quiesce(pos, alpha, beta, 2);
+    let best = -Infinity;
+    let index = 0;
+    for (const m of order(moves)) {
+      const reduce = index >= 6 && depth >= 3 && !m.captured ? 1 : 0;
+      const v = -search(apply(pos, m), depth - 1 - reduce, -beta, -alpha, ply + 1);
+      index += 1;
+      if (v > best) best = v;
+      if (best > alpha) alpha = best;
+      if (alpha >= beta) break;
+    }
+    return best;
+  }
+
+  const rootMoves = match.legalMoves();
+  if (!rootMoves.length) return { ranked: [], selected: null, value: 0, nodes: 0, depth: 0 };
+  let ranked = rootMoves.map(m => ({ ...m, value: 0 })).sort((a, b) => (b.capture ? 1 : 0) - (a.capture ? 1 : 0));
+  let completedDepth = 0;
+  for (let depth = 1; depth <= maxDepth; depth++) {
+    const results = [];
+    try {
+      for (const entry of ranked) {
+        const v = -search(apply(root, entry.raw), depth - 1, -Infinity, Infinity, 1);
+        results.push({ ...entry, value: v });
+      }
+      ranked = results.sort((a, b) => b.value - a.value);
+      completedDepth = depth;
+    } catch { break; }
+    if (performance.now() > deadline) break;
   }
   let selected = ranked[0];
-  if (!analysis && level === 1) selected = choice(ranked.slice(0, Math.min(8, ranked.length)));
-  if (!analysis && level === 2) selected = choice(ranked.filter(m => m.value >= ranked[0].value - 70).slice(0, 4));
-  return { ranked, selected, value: (ranked[0]?.value || 0) * match.turn, nodes, depth: completedDepth };
+  if (!analysis && level === 1) selected = choice(ranked.slice(0, Math.min(4, ranked.length)));
+  if (!analysis && level === 2) selected = choice(ranked.filter(m => m.value >= ranked[0].value - 90).slice(0, 3));
+  return { ranked, selected, value: (ranked[0]?.value || 0) * turn, nodes, depth: completedDepth };
+}
+
+function pieceSearch(match, level, analysis) {
+  return match.kind === 'chess' ? chessSearch(match, level, analysis) : xqSearch(match, level, analysis);
 }
 
 const GOMOKU_WIN = 100000000;
@@ -159,9 +315,9 @@ function gomokuSearch(match, level, analysis) {
   const enemyWins = gridCandidates(map, -side).filter(c => c.attack >= GOMOKU_WIN);
   const forced = immediate || (enemyWins.length === 1 ? start.find(c => c.id === enemyWins[0].id) : null);
   let nodes = 0;
-  const deadline = performance.now() + (analysis ? 180 : [25, 85, 240, 650, 1500][level - 1]);
-  const width = [5, 7, 9, 11, 14][level - 1];
-  const maxDepth = analysis ? 1 : [0, 1, 2, 3, 4][level - 1];
+  const deadline = performance.now() + (analysis ? 200 : [30, 110, 320, 850, 1800][level - 1]);
+  const width = [6, 9, 12, 16, 22][level - 1];
+  const maxDepth = analysis ? 1 : [0, 2, 3, 4, 6][level - 1];
   const evaluate = currentSide => {
     const own = gridCandidates(map, currentSide).slice(0, 8);
     const opponent = gridCandidates(map, -currentSide).slice(0, 8);
