@@ -17,6 +17,15 @@ const DEFAULT_SETTINGS = {
   music: true, numbers: false, autoAnalyze: true, refraction: true,
   theme: 'system',   // 'system' 跟随系统 | 'light' | 'dark'
 };
+const FAKE_PLAYERS = [
+  { id: 'yehang', name: '夜航船', level: 3, tag: '刚下晚自习', avatar: '夜' },
+  { id: 'aqiang', name: '阿强不加班', level: 2, tag: '手机在线', avatar: '强' },
+  { id: 'mumu', name: '木木夕', level: 4, tag: '连输三把了', avatar: '木' },
+  { id: 'laowang', name: '隔壁老王', level: 3, tag: '茶还没凉', avatar: '王' },
+  { id: 'qinghe', name: '清和', level: 5, tag: '周末棋摊常客', avatar: '清' },
+  { id: 'xiaoyu', name: '小鱼干', level: 2, tag: '刚学会围棋', avatar: '鱼' },
+  { id: 'shanzhu', name: '山住一宿', level: 4, tag: '在网吧', avatar: '山' },
+];
 const DEFAULT_API = { baseUrl: 'https://api.deepseek.com', model: '', key: '' };
 const API_PRESETS = [
   { id: 'deepseek', label: 'DeepSeek', baseUrl: 'https://api.deepseek.com' },
@@ -176,6 +185,7 @@ export default function App() {
   const [selected, setSelected] = useState(null), [hint, setHint] = useState(null);
   const [flipped, setFlipped] = useState(false), [focus, setFocus] = useState(false);
   const [modal, setModal] = useState(null), [confirm, setConfirm] = useState(null);
+  const [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
   const [promotion, setPromotion] = useState(null), [toast, setToast] = useState('');
   const [thinking, setThinking] = useState(false), [analysisBusy, setAnalysisBusy] = useState(false), [apiBusy, setApiBusy] = useState(false);
   const [analysis, setAnalysis] = useState(null), [remoteAnalysis, setRemoteAnalysis] = useState(null);
@@ -301,6 +311,8 @@ export default function App() {
       worker.onerror = () => { if (!cancelled) { setThinking(false); setAiError(true); } worker.terminate(); };
       worker.postMessage({ game, level: settings.level, analysis: false });
     };
+    // 假联机：对面是 AI，但按真人节奏磨 5~10 秒再落子
+    const thinkMs = rival ? 5000 + Math.random() * 5000 : 350;
     const timer = setTimeout(async () => {
       if (settings.provider === 'local') return localMove();
       try {
@@ -321,7 +333,7 @@ export default function App() {
           notify('API 落子失败，对局已暂停');
         }
       }
-    }, 350);
+    }, thinkMs);
     return () => { cancelled = true; clearTimeout(timer); controller.abort(); worker?.terminate(); };
   }, [game, settings.mode, settings.side, settings.level, settings.provider, analysisVersion, api]);
 
@@ -412,13 +424,13 @@ export default function App() {
     if (!candidate) { setting('autoAnalyze', true); setAnalysisVersion(v => v + 1); notify('正在分析当前棋盘'); return; }
     setHint(candidate); if (candidate.from) setSelected(candidate.from); sound.play('select'); notify(`${candidate.label} · ${candidate.reason || '推荐走法'}`);
   }
-  const playerLabel = side => settings.mode === 'human' ? (side === 1 ? '棋友一' : '棋友二') : side === settings.side ? '你' : '曼波同学';
+  const playerLabel = side => settings.mode === 'human' ? (side === 1 ? '棋友一' : '棋友二') : side === settings.side ? (nick.trim() || '你') : (rival?.name || '曼波同学');
   const topSide = flipped ? 1 : -1, bottomSide = -topSide;
   function playerRow(side, bottom = false) {
     const isBot = settings.mode === 'ai' && settings.side !== side, active = match.turn === side && !match.result;
     return <div className={`player-row ${active ? 'is-turn' : ''} ${bottom ? 'bottom-player' : ''}`}>
       <div className={`player-avatar ${isBot ? 'bot-avatar' : ''}`}>{isBot ? <RemoteCat mood="avatar"/> : <span>{side === 1 ? '你' : '友'}</span>}<i className={`side-dot ${game.kind === 'chess' ? (side === 1 ? 'white' : 'black') : game.kind === 'xiangqi' ? (side === 1 ? 'red' : 'black') : side === 1 ? 'black' : 'white'}`}/></div>
-      <div className="player-identity"><strong>{playerLabel(side)}{isBot && <span className="tiny-badge">AI</span>}</strong><span>{sideName(game.kind, side)}<b>·</b>{isBot ? `Lv.${settings.level} ${LEVELS[settings.level - 1]}` : settings.mode === 'human' ? '同屏对弈' : '自在落子'}</span></div>
+      <div className="player-identity"><strong>{playerLabel(side)}{isBot && (rival ? <span className="tiny-badge">在线</span> : <span className="tiny-badge">AI</span>)}</strong><span>{sideName(game.kind, side)}<b>·</b>{isBot ? `Lv.${settings.level} ${LEVELS[settings.level - 1]}` : settings.mode === 'human' ? '同屏对弈' : '自在落子'}</span></div>
       <div className="player-state">{active && thinking && isBot ? <><LoaderCircle size={14} className="spin"/>思考中</> : active && !match.scoring ? <><span className="live-dot"/>执棋中</> : <span className="muted">{match.result ? '已结束' : '等待中'}</span>}</div>
       {game.kind === 'go' && <span className="capture-counter">提子 {match.engine.getCaptures(side)}</span>}
     </div>;
@@ -456,6 +468,7 @@ export default function App() {
         <section className="game-settings">
           <div className="field-heading">与谁对弈<span>PLAY WITH</span></div>
           <div className="segmented mode-switch"><button className={settings.mode === 'ai' ? 'active' : ''} onClick={() => changeSettingGame('mode', 'ai')}><Bot size={17}/>曼波 AI</button><button className={settings.mode === 'human' ? 'active' : ''} onClick={() => changeSettingGame('mode', 'human')}><Users size={16}/>双人</button></div>
+          <button className="lobby-button" onClick={() => { setDraftNick(nick); setModal('lobby'); }}><Users size={16}/>{rival ? `对手：${rival.name} · 换人` : '联机大厅'}<ChevronRight size={15}/></button>
           <div className="field-heading difficulty-heading">棋力等级<span className="level-label">Lv.{settings.level} {LEVELS[settings.level - 1]}</span></div>
           <div className="difficulty-control" role="group" aria-label="AI 难度">{LEVELS.map((label, index) => <button key={label} disabled={settings.mode !== 'ai'} title={`等级 ${index + 1} ${label}`} aria-label={`难度 ${index + 1} ${label}`} aria-pressed={settings.level === index + 1} onClick={() => setting('level', index + 1)} className={settings.level === index + 1 ? 'active' : ''}>{index + 1}</button>)}</div>
           <div className="range-labels"><span>轻松一点</span><span>认真一点</span></div>
@@ -478,7 +491,7 @@ export default function App() {
         </div>
         {playerRow(bottomSide, true)}
         {match.scoring && !match.result && goScore && <div className="scoring-bar"><div><strong>终局数子</strong><span>黑 {goScore.black.toFixed(1)}（地 {goScore.territory.black} + 提 {goScore.prisoners.black}） · 白 {goScore.white.toFixed(1)}（地 {goScore.territory.white} + 提 {goScore.prisoners.white}，含贴目）</span></div><button className="secondary-button" onClick={() => setGame(g => ({ ...g, moves: g.moves.slice(0, -2), dead: [] }))}>继续对弈</button><button className="primary-button" onClick={() => setConfirm({ title: '双方确认数子结果？', message: '已标记的死子将移除，按地盘与提子计算，白方贴 6.5 目。', action: () => { setGame(g => ({ ...g, scoreAccepted: true })); sound.play('win'); } })}>确认结果</button></div>}
-        <div className="board-toolbar"><div className="toolbar-group"><IconButton icon={RotateCcw} label="悔棋" onClick={undoMove} disabled={!game.moves.length || !!match.result}/><IconButton icon={RotateCw} label="翻转棋盘" onClick={() => setFlipped(f => !f)}/><IconButton icon={Lightbulb} label="显示提示" onClick={() => showHint()} active={!!hint} disabled={!!match.result || match.scoring}/></div><div className="board-turn-status" aria-live="polite">{thinking ? <><span className="thinking-dots"><i/><i/><i/></span>曼波正在想下一步</> : match.result ? `${resultLabel} · ${match.result.reason}` : match.scoring ? '双方停着 · 点选死子' : <><span className="live-dot"/>{sideName(game.kind, match.turn)}落子{match.check ? ' · 将军！' : ''}</>}</div><div className="toolbar-group"><IconButton icon={Flag} label="认输" disabled={!!match.result || thinking || !game.moves.length} onClick={() => setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => { setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })); sound.play('win'); } })}/><IconButton icon={MoreHorizontal} label="更多棋盘操作" onClick={() => setModal('board')}/></div></div>
+        <div className="board-toolbar"><div className="toolbar-group"><IconButton icon={RotateCcw} label="悔棋" onClick={undoMove} disabled={!game.moves.length || !!match.result}/><IconButton icon={RotateCw} label="翻转棋盘" onClick={() => setFlipped(f => !f)}/><IconButton icon={Lightbulb} label="显示提示" onClick={() => showHint()} active={!!hint} disabled={!!match.result || match.scoring}/></div><div className="board-turn-status" aria-live="polite">{thinking ? <><span className="thinking-dots"><i/><i/><i/></span>{rival ? `${rival.name} 正在想…` : '曼波正在想下一步'}</> : match.result ? `${resultLabel} · ${match.result.reason}` : match.scoring ? '双方停着 · 点选死子' : <><span className="live-dot"/>{sideName(game.kind, match.turn)}落子{match.check ? ' · 将军！' : ''}</>}</div><div className="toolbar-group"><IconButton icon={Flag} label="认输" disabled={!!match.result || thinking || !game.moves.length} onClick={() => setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => { setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })); sound.play('win'); } })}/><IconButton icon={MoreHorizontal} label="更多棋盘操作" onClick={() => setModal('board')}/></div></div>
         {apiError && <section className="api-error-panel" role="alert">
           <strong>{aiError ? 'API 落子暂停' : 'API 请求失败'}</strong><p>{apiError}</p><ApiDiagnostics details={apiDetails}/>
           <div className="api-error-actions">
@@ -538,6 +551,23 @@ export default function App() {
     </Modal>}
     {modal === 'engine' && <Modal title="选择 AI 引擎" onClose={() => setModal(null)}><div className="engine-options"><button className={settings.provider === 'local' ? 'active' : ''} onClick={() => { setting('provider', 'local'); setModal(null); }}><Cpu size={23}/><div><strong>内置本地战术引擎</strong><span>已嵌入项目 · 五级难度 · 无需密钥</span></div>{settings.provider === 'local' && <Check size={18}/>}</button><button className={settings.provider === 'api' ? 'active' : ''} onClick={() => { if (!api.key && !serverInfo.configured && !api.baseUrl.startsWith('http://localhost') && !api.baseUrl.startsWith('http://127.0.0.1')) { setModal('api'); return; } setting('provider', 'api'); setModal(null); }}><PlugZap size={23}/><div><strong>模型 API 对弈</strong><span>{api.model} · 合法着校验</span></div>{settings.provider === 'api' && <Check size={18}/>}</button></div><button className="text-button full-width" onClick={() => setModal('api')}>配置模型连接<ChevronRight size={15}/></button></Modal>}
     {modal === 'board' && <Modal title="棋盘操作" onClose={() => setModal(null)}><div className="board-menu"><button onClick={() => { setModal(null); guardChange(() => startGame()); }}><Plus size={18}/>开始新对局<ChevronRight size={16}/></button><button onClick={() => { setFlipped(f => !f); setModal(null); }}><RotateCw size={18}/>翻转棋盘<ChevronRight size={16}/></button>{game.kind === 'go' && <button onClick={() => { setModal(null); performMove('pass'); }} disabled={!!match.result || match.scoring || thinking}><SkipForward size={18}/>停一手<ChevronRight size={16}/></button>}<button onClick={() => { setModal(null); setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })) }); }} disabled={!!match.result || thinking || !game.moves.length}><Flag size={18}/>认输<ChevronRight size={16}/></button></div></Modal>}
+    {modal === 'lobby' && <Modal title="联机大厅" onClose={() => setModal(null)} wide>
+      <div className="lobby-nick"><label htmlFor="nick-input">我的昵称</label><input id="nick-input" maxLength={12} value={draftNick} placeholder="输个名字，对手才认得出你" onChange={e => setDraftNick(e.target.value)}/></div>
+      <p className="lobby-hint">在线玩家 {FAKE_PLAYERS.length} 人 · 选一个开局（他们下棋偏慢，一般想 5~10 秒一手）</p>
+      <div className="lobby-list">{FAKE_PLAYERS.map(p => (
+        <button key={p.id} className={`lobby-row ${rival?.id === p.id ? 'active' : ''}`} onClick={() => {
+          setNick(draftNick.trim()); writeStorage('mambo-nick', draftNick.trim());
+          setRival(p); setting('mode', 'ai'); setting('level', p.level); setModal(null);
+          setGame(freshGame(game.kind, game.kind === 'go' ? game.size : undefined));
+          setSeconds(0); setFlipped(p.id % 2 === 1); notify(`已和 ${p.name} 开局`);
+        }}>
+          <span className="lobby-avatar">{p.avatar}</span>
+          <span className="lobby-name"><strong>{p.name}</strong><small>{p.tag}</small></span>
+          <span className="lobby-level">Lv.{p.level} {LEVELS[p.level - 1]}</span>
+        </button>
+      ))}</div>
+      {rival && <button className="text-button full-width" onClick={() => { setRival(null); setModal(null); notify('已退出联机，回到和曼波下棋'); }}>退出联机，自己练</button>}
+    </Modal>}
     {modal === 'rules' && <Modal title={`${kindInfo.name} · 对局约定`} onClose={() => setModal(null)}><div className="rules-copy">
       {game.kind === 'gomoku' && <p>黑棋先行，双方轮流在交叉点落子。横、竖、斜线连续五子或以上获胜。本棋室采用自由五子棋，不设三三、四四和长连禁手。</p>}
       {game.kind === 'go' && <><p>黑棋先行。标准 19×19 棋盘，也可切 13 路 / 9 路。棋块没有气时被提走，禁止自杀与重复全盘局面。双方连续停一手进入数子，白贴 6.5 目。</p><p>本地 AI 是内置战术引擎（提子、打吃、气与势力的启发式搜索），不代替专业围棋引擎。</p></>}

@@ -828,3 +828,34 @@ input[type="range"] { accent-color: #8ca573; cursor: pointer; height: 14px; }
 [data-theme="dark"] .stone-sample.white { background: #d3dcd7; }
 [data-theme="dark"] .brand small,
 [data-theme="dark"] .eyebrow { color: var(--muted); }
+
+/* 联机大厅：假联机入口与玩家列表 */
+.lobby-button { display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; font-size: 11px; color: #6c7f5c; background: #f4f7ee; border: 1px solid #dbe4d1; border-radius: 8px; transition: background .18s ease, border-color .18s ease; }
+.lobby-button:hover { background: #eaf1e0; border-color: #c3d3b2; color: #4f643f; }
+.lobby-button svg:last-child { margin-left: auto; opacity: .55; }
+.lobby-hint { margin: -6px 0 14px; font-size: 10px; color: #9aa88c; }
+.lobby-nick { display: grid; gap: 7px; margin-bottom: 16px; }
+.lobby-nick label { font-size: 10px; color: #8b9a7c; }
+.lobby-nick input { height: 38px; padding: 0 12px; font-size: 13px; color: #3f5137; background: #fff; border: 1px solid #d5dfca; border-radius: 8px; }
+.lobby-nick input:focus { outline: none; border-color: #a8bd94; box-shadow: 0 0 0 3px #cfe0bf55; }
+.lobby-list { display: grid; gap: 8px; }
+.lobby-row { display: flex; align-items: center; gap: 11px; padding: 10px 12px; text-align: left; background: #fbfdf8; border: 1px solid #e0e8d8; border-radius: 10px; transition: background .16s ease, border-color .16s ease, transform .16s var(--ease); }
+.lobby-row:hover { background: #f3f8ec; border-color: #bfd2ac; transform: translateY(-1px); }
+.lobby-row.active { background: #eef5e4; border-color: #9dba83; }
+.lobby-avatar { display: grid; place-items: center; width: 34px; height: 34px; flex-shrink: 0; font-size: 14px; color: #5a7047; background: #e7f0db; border-radius: 50%; }
+.lobby-name { display: grid; gap: 3px; min-width: 0; }
+.lobby-name strong { font-size: 13px; font-weight: 600; color: #3f5137; }
+.lobby-name small { font-size: 9px; color: #a4b295; }
+.lobby-level { margin-left: auto; font-size: 10px; color: #849a72; white-space: nowrap; }
+[data-theme="dark"] .lobby-button { color: #a9c096; background: #1f2a24; border-color: #33473b; }
+[data-theme="dark"] .lobby-button:hover { background: #26332c; border-color: #43594b; }
+[data-theme="dark"] .lobby-hint { color: #7f9486; }
+[data-theme="dark"] .lobby-nick label { color: #8ea394; }
+[data-theme="dark"] .lobby-nick input { color: #dcefe3; background: #1a231f; border-color: #3a4c41; }
+[data-theme="dark"] .lobby-row { background: #1c2621; border-color: #2f4136; }
+[data-theme="dark"] .lobby-row:hover { background: #24322a; border-color: #47614f; }
+[data-theme="dark"] .lobby-row.active { background: #26332c; border-color: #5b7b63; }
+[data-theme="dark"] .lobby-avatar { color: #bdd6c7; background: #26332c; }
+[data-theme="dark"] .lobby-name strong { color: #d9ecdf; }
+[data-theme="dark"] .lobby-name small { color: #7f9486; }
+[data-theme="dark"] .lobby-level { color: #8fa79a; }

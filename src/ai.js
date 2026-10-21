@@ -89,8 +89,8 @@ function pickBest(list, score) {
 /** 国际象棋：迭代加深 + alpha-beta + 静态搜索 + 置换表。 */
 function chessSearch(match, level, analysis) {
   const engine = match.engine, turn = match.turn;
-  const deadline = performance.now() + (analysis ? 300 : [70, 180, 420, 900, 1700][level - 1]);
-  const maxDepth = analysis ? 2 : [2, 3, 4, 5, 6][level - 1];
+  const deadline = performance.now() + (analysis ? 320 : [90, 220, 520, 1100, 2100][level - 1]);
+  const maxDepth = analysis ? 2 : [2, 4, 5, 6, 7][level - 1];
   let nodes = 0;
   const st = { nodes };
 
@@ -315,9 +315,9 @@ function gomokuSearch(match, level, analysis) {
   const enemyWins = gridCandidates(map, -side).filter(c => c.attack >= GOMOKU_WIN);
   const forced = immediate || (enemyWins.length === 1 ? start.find(c => c.id === enemyWins[0].id) : null);
   let nodes = 0;
-  const deadline = performance.now() + (analysis ? 200 : [30, 110, 320, 850, 1800][level - 1]);
-  const width = [6, 9, 12, 16, 22][level - 1];
-  const maxDepth = analysis ? 1 : [0, 2, 3, 4, 6][level - 1];
+  const deadline = performance.now() + (analysis ? 220 : [35, 130, 380, 950, 2000][level - 1]);
+  const width = [6, 10, 14, 18, 24][level - 1];
+  const maxDepth = analysis ? 1 : [0, 2, 3, 5, 7][level - 1];
   const evaluate = currentSide => {
     const own = gridCandidates(map, currentSide).slice(0, 8);
     const opponent = gridCandidates(map, -currentSide).slice(0, 8);
@@ -466,7 +466,7 @@ function goSearch(match, level, analysis) {
     graded.push({ ...m, value, taken, saving: rescue > 0, atari, eye });
   }
 
-  const deep = analysis ? 0 : [0, 8, 12, 18, 26][level - 1];
+  const deep = analysis ? 0 : [0, 10, 16, 24, 32][level - 1];
   graded.sort((a, b) => b.value - a.value);
   if (deep) for (const candidate of graded.slice(0, deep)) {
     if (performance.now() > deadline) break;
