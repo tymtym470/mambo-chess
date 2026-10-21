@@ -13,7 +13,7 @@ import { MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_SOURCE, MAMBO_CAT_VARIANTS } from './
 
 
 const DEFAULT_SETTINGS = {
-  mode: 'ai', level: 3, side: 1, provider: 'local', enabled: true, voice: true, volume: .55,
+  mode: 'ai', level: 5, side: 1, provider: 'local', enabled: true, voice: true, volume: .55,
   music: true, numbers: false, autoAnalyze: true, refraction: true,
   theme: 'system',   // 'system' 跟随系统 | 'light' | 'dark'
 };
@@ -484,7 +484,7 @@ export default function App() {
           <div className="segmented mode-switch"><button className={settings.mode === 'ai' ? 'active' : ''} onClick={() => changeSettingGame('mode', 'ai')}><Bot size={17}/>曼波 AI</button><button className={settings.mode === 'human' ? 'active' : ''} onClick={() => changeSettingGame('mode', 'human')}><Users size={16}/>双人</button></div>
           <button className="lobby-button" onClick={() => { setDraftNick(nick); setModal('lobby'); }}><Users size={16}/>{rival ? `对手：${rival.name} · 换人` : '联机大厅'}<ChevronRight size={15}/></button>
           <div className="field-heading difficulty-heading">棋力等级<span className="level-label">Lv.{settings.level} {LEVELS[settings.level - 1]}</span></div>
-          <div className="difficulty-control" role="group" aria-label="AI 难度">{LEVELS.map((label, index) => <button key={label} disabled={settings.mode !== 'ai'} title={`等级 ${index + 1} ${label}`} aria-label={`难度 ${index + 1} ${label}`} aria-pressed={settings.level === index + 1} onClick={() => setting('level', index + 1)} className={settings.level === index + 1 ? 'active' : ''}>{index + 1}</button>)}</div>
+          <div className="top-level-badge"><Cpu size={14}/>顶级模型 · Lv.5 大师</div>
           <div className="range-labels"><span>轻松一点</span><span>认真一点</span></div>
           {settings.mode === 'ai' && <><div className="field-heading small">我的执子</div><div className="side-selector">{[1, -1].map(side => <button key={side} className={settings.side === side ? 'active' : ''} onClick={() => changeSettingGame('side', side)}><span className={`stone-sample ${game.kind === 'chess' ? side === 1 ? 'white' : 'black' : game.kind === 'xiangqi' ? side === 1 ? 'red' : 'black' : side === 1 ? 'black' : 'white'}`}/>{sideName(game.kind, side)}{side === 1 && <small>先手</small>}</button>)}</div></>}
           {game.kind === 'go' && <div className="size-row"><span>棋盘路数</span><select aria-label="围棋棋盘大小" value={game.size} onChange={e => guardChange(() => startGame('go', Number(e.target.value)))}>{[[19, '19 路（标准）'], [13, '13 路'], [9, '9 路']].map(([n, label]) => <option key={n} value={n}>{label}</option>)}</select></div>}
@@ -572,13 +572,13 @@ export default function App() {
       <div className="lobby-list">{FAKE_PLAYERS.map(p => (
         <button key={p.id} className={`lobby-row ${rival?.id === p.id ? 'active' : ''}`} onClick={() => {
           setNick(draftNick.trim()); writeStorage('mambo-nick', draftNick.trim());
-          setRival(p); setting('mode', 'ai'); setting('level', p.level); setModal(null);
+          setRival(p); setting('mode', 'ai'); setting('level', 5); setModal(null);
           setGame(freshGame(game.kind, game.kind === 'go' ? game.size : undefined));
           setSeconds(0); setFlipped(p.id % 2 === 1); notify(`已和 ${p.name} 开局`);
         }}>
           <span className="lobby-avatar">{p.avatar}</span>
           <span className="lobby-name"><strong>{p.name}</strong><small>{p.tag} · 房间 {p.room}</small></span>
-          <span className="lobby-stat"><b>{p.ping}ms</b><small>胜率 {p.win}%</small></span><span className="lobby-level">Lv.{p.level} {LEVELS[p.level - 1]}</span>
+          <span className="lobby-stat"><b>{p.ping}ms</b><small>胜率 {p.win}%</small></span><span className="lobby-level">Lv.5 {LEVELS[4]}</span>
         </button>
       ))}</div>
       {rival && <button className="text-button full-width" onClick={() => { setRival(null); setModal(null); notify('已退出联机，回到和曼波下棋'); }}>退出联机，自己练</button>}

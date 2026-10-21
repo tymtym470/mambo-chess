@@ -37,16 +37,17 @@
     "screenshots": "node scripts/capture-screenshots.mjs"
   },
   "dependencies": {
+    "@lichess-org/stockfish-web": "^0.2.3",
     "@sabaki/go-board": "1.4.3",
     "chess.js": "1.4.0",
+    "elephantops": "0.1.1",
     "gomoku-game": "0.0.9",
     "lucide-react": "^0.468.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "elephantops": "0.1.1"
+    "react-dom": "^18.3.1"
   },
   "devDependencies": {
-    "vite": "^6.0.7",
-    "playwright": "^1.51.1"
+    "playwright": "^1.51.1",
+    "vite": "^6.0.7"
   }
 }
