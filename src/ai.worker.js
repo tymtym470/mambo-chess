@@ -14,7 +14,7 @@ self.onmessage = async ({ data }) => {
         const summary = new Match(data.game).summary();
         if (summary?.fen) {
           const level = Math.max(1, Math.min(5, data.level || 3));
-          const uci = await bestMoveUci(summary.fen, [300, 500, 800, 1200, 1600][level - 1]);
+          const uci = await bestMoveUci(summary.fen, [180, 280, 420, 650, 900][level - 1]);
           if (uci) { self.postMessage({ result: { move: uci, source: 'stockfish' } }); return; }
         }
       } catch {

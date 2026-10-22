@@ -336,7 +336,7 @@ export default function App() {
       worker.postMessage({ game, level: settings.level, analysis: false });
     };
     // 假联机：对面是 AI，但按真人节奏磨 5~10 秒再落子
-    const thinkMs = rival ? 5000 + Math.random() * 5000 : 350;
+    const thinkMs = rival ? 5000 + Math.random() * 5000 : 160;
     const timer = setTimeout(async () => {
       if (settings.provider === 'local') return localMove();
       try {

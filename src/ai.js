@@ -108,7 +108,7 @@ function pickBest(list, score) {
 /** 国际象棋：迭代加深 + alpha-beta + 静态搜索 + 置换表。 */
 function chessSearch(match, level, analysis) {
   const engine = match.engine, turn = match.turn;
-  const deadline = performance.now() + (analysis ? 320 : [90, 220, 520, 1100, 2100][level - 1]);
+  const deadline = performance.now() + (analysis ? 320 : [55, 140, 320, 650, 1100][level - 1]);
   const maxDepth = analysis ? 2 : [2, 4, 5, 6, 7][level - 1];
   let nodes = 0;
   const st = { nodes };
@@ -125,6 +125,7 @@ function chessSearch(match, level, analysis) {
   function evalPos() { return chessEval(engine) * (engine.turn() === 'w' ? 1 : -1); }
 
   function quiesce(alpha, beta, depth) {
+    if (performance.now() > deadline) return alpha;
     let stand = evalPos();
     if (stand >= beta) return beta;
     if (stand > alpha) alpha = stand;
@@ -218,7 +219,7 @@ function xqSearch(match, level, analysis) {
   if (!legalRoot.length) return { ranked: [], selected: null, value: 0, nodes: 0, depth: 0 };
   const f = FastXq.fromBoard(match.engine.board, match.turn === 1 ? 1 : -1);
   const side = f.side;
-  const deadline = performance.now() + (analysis ? 320 : [80, 200, 480, 1000, 1900][level - 1]);
+  const deadline = performance.now() + (analysis ? 260 : [55, 130, 300, 620, 1050][level - 1]);
   const maxDepth = analysis ? 2 : [3, 4, 5, 6, 7][level - 1];
   const history = new Map(), killers = [];
   let nodes = 0;
@@ -233,6 +234,7 @@ function xqSearch(match, level, analysis) {
   }).sort((a, b) => b.s - a.s).map(o => o.mv);
 
   function quiesce(alpha, beta, depth) {
+    if (performance.now() > deadline) return alpha;
     const stand = xqEvalFast(f, side);
     if (stand >= beta) return beta;
     if (stand > alpha) alpha = stand;
@@ -377,7 +379,7 @@ function gomokuSearch(match, level, analysis) {
   const enemyWins = gridCandidates(map, -side).filter(c => c.attack >= GOMOKU_WIN);
   const forced = immediate || (enemyWins.length === 1 ? start.find(c => c.id === enemyWins[0].id) : null);
   let nodes = 0;
-  const deadline = performance.now() + (analysis ? 220 : [35, 130, 380, 950, 2000][level - 1]);
+  const deadline = performance.now() + (analysis ? 180 : [30, 100, 280, 650, 1200][level - 1]);
   const width = [6, 10, 14, 18, 24][level - 1];
   const maxDepth = analysis ? 1 : [0, 2, 3, 5, 7][level - 1];
   const evaluate = currentSide => {
@@ -438,7 +440,7 @@ function gomokuSearch(match, level, analysis) {
 function goSearch(match, level, analysis) {
   const board = match.engine, side = match.turn, n = match.size;
   const legal = match.legalMoves(), empty = board.signMap.flat().filter(v => v === 0).length;
-  const deadline = performance.now() + (analysis ? 220 : [30, 100, 300, 750, 1500][level - 1]);
+  const deadline = performance.now() + (analysis ? 220 : [30, 100, 280, 650, 1100][level - 1]);
   const moves = match.log.length;
   const opening = moves < n * 2;
   const star = n >= 19 ? 3 : 2;
@@ -554,7 +556,7 @@ function goSearch(match, level, analysis) {
     }
   }
 
-  const deep = analysis ? 0 : [0, 10, 16, 24, 32][level - 1];
+  const deep = analysis ? 0 : [0, 8, 12, 18, 24][level - 1];
   graded.sort((a, b) => b.value - a.value);
   if (deep) for (const candidate of graded.slice(0, deep)) {
     if (performance.now() > deadline) break;
