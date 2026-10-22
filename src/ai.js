@@ -1,5 +1,6 @@
 import { Match, GAMES, sideName } from './game.js';
 import { FastBoard, playout } from './go-mc.js';
+import { FastXq } from './xq-fast.js';
 
 const VALUES = { p: 100, n: 320, b: 335, r: 500, q: 900, k: 20000, pawn: 100, horse: 430, elephant: 210, advisor: 210, chariot: 900, cannon: 460, king: 20000 };
 const clamp = (v, min, max) => Math.max(min, Math.min(max, v));
@@ -186,77 +187,105 @@ function chessSearch(match, level, analysis) {
 }
 
 /** 中国象棋：同样的搜索骨架，只是用 elephantops 的 clone/play。 */
+const XQ_V = { 1: 0, 2: 200, 3: 200, 4: 400, 5: 900, 6: 450, 7: 100 };
+
+/** 数组盘上的静态评估（与 elephantops 版本同权重，但不再 clone）。 */
+function xqEvalFast(f, side) {
+  const pawns = [new Array(9).fill(0), new Array(9).fill(0)];
+  for (let s = 0; s < 90; s++) { const p = f.b[s]; if (p && Math.abs(p) === 7) pawns[p > 0 ? 0 : 1][s % 9]++; }
+  let score = 0;
+  for (let s = 0; s < 90; s++) {
+    const p = f.b[s];
+    if (!p) continue;
+    const red = p > 0, role = Math.abs(p), x = s % 9, y = (s / 9) | 0;
+    const advance = red ? y : 9 - y;
+    const center = Math.max(0, 4 - Math.abs(x - 4));
+    let v = XQ_V[role];
+    if (role === 7) v += Math.max(0, advance - 2) * 14 + (advance >= 5 ? 90 : 0) + center * 4;
+    else if (role === 4) v += center * 16 - ((x === 0 || x === 8) ? 18 : 0);
+    else if (role === 6) v += center * 10 + (x === 4 ? 12 : 0);
+    else if (role === 5) v += (2 - pawns[red ? 0 : 1][x]) * 14 + center * 6;
+    else if (role === 2 || role === 3) v += advance >= 6 ? 20 : -25;
+    else if (role === 1) v -= advance < 8 ? 40 : 0;
+    score += (red ? 1 : -1) * v;
+  }
+  return score * side;
+}
+
+/** 中国象棋主搜索：数组盘 + 迭代加深 + alpha-beta + 吃子静态搜索 + 历史/杀手排序。 */
 function xqSearch(match, level, analysis) {
-  const root = match.engine, turn = match.turn;
-  const deadline = performance.now() + (analysis ? 300 : [70, 180, 420, 900, 1700][level - 1]);
-  const maxDepth = analysis ? 2 : [2, 3, 4, 5, 6][level - 1];
+  const legalRoot = match.legalMoves();
+  if (!legalRoot.length) return { ranked: [], selected: null, value: 0, nodes: 0, depth: 0 };
+  const f = FastXq.fromBoard(match.engine.board, match.turn === 1 ? 1 : -1);
+  const side = f.side;
+  const deadline = performance.now() + (analysis ? 320 : [80, 200, 480, 1000, 1900][level - 1]);
+  const maxDepth = analysis ? 2 : [3, 4, 5, 6, 7][level - 1];
+  const history = new Map(), killers = [];
   let nodes = 0;
 
-  const legal = pos => {
-    const out = [];
-    for (const [from, dests] of pos.allDests()) for (const to of dests) {
-      out.push({ from, to, captured: pos.board.has(to) });
-    }
-    return out;
-  };
-  const history = new Map(), killers = [];
-  const order = (moves, ply = 0) => moves.map(m => {
-    const key = m.from + '-' + m.to;
-    let score = 0;
-    if (m.captured) score += 200000 + (XQ_VALUE[m.captured] || 0) * 10 - (XQ_VALUE[root.board.get(m.from)?.role] || 0);
+  const order = (moves, ply = 0) => moves.map(([from, to]) => {
+    const cap = f.b[to];
+    let score = cap ? 200000 + XQ_V[Math.abs(cap)] * 10 : 0;
+    const key = from * 90 + to;
     if (killers[ply] === key) score += 90000;
     score += history.get(key) || 0;
-    return { m, s: score };
-  }).sort((a, b) => b.s - a.s).map(o => o.m);
-  const apply = (pos, m) => { const next = pos.clone(); next.play({ from: m.from, to: m.to }); return next; };
+    return { mv: [from, to], s: score };
+  }).sort((a, b) => b.s - a.s).map(o => o.mv);
 
-  function quiesce(pos, alpha, beta, depth) {
-    const stand = xqEval(pos) * (pos.turn === 'red' ? 1 : -1);
+  function quiesce(alpha, beta, depth) {
+    const stand = xqEvalFast(f, side);
     if (stand >= beta) return beta;
     if (stand > alpha) alpha = stand;
     if (depth <= 0) return alpha;
-    for (const m of order(legal(pos).filter(m => m.captured))) {
-      const v = -quiesce(apply(pos, m), -beta, -alpha, depth - 1);
+    for (const [from, to] of order(f.moves([]).filter(([, t]) => f.b[t]))) {
+      f.make(from, to);
+      if (f.inCheck(side)) { f.undo(); continue; }
+      const v = -quiesce(-beta, -alpha, depth - 1);
+      f.undo();
       if (v >= beta) return beta;
       if (v > alpha) alpha = v;
     }
     return alpha;
   }
 
-  function search(pos, depth, alpha, beta, ply) {
-    if (++nodes % 512 === 0 && performance.now() > deadline) throw new Error('budget');
-    const moves = legal(pos);
-    if (!moves.length) return -MATE + ply;
-    if (depth <= 1) return quiesce(pos, alpha, beta, 2);
+  function search(depth, alpha, beta, ply) {
+    if (++nodes % 1024 === 0 && performance.now() > deadline) throw new Error('budget');
+    if (depth <= 1) return quiesce(alpha, beta, 3);
     let best = -Infinity;
+    const moves = order(f.moves([]), ply);
     let index = 0;
-    for (const m of order(moves, ply)) {
-      const reduce = index >= 6 && depth >= 3 && !m.captured ? 1 : 0;
-      const v = -search(apply(pos, m), depth - 1 - reduce, -beta, -alpha, ply + 1);
-      index += 1;
+    for (const [from, to] of moves) {
+      f.make(from, to);
+      if (f.inCheck(side)) { f.undo(); continue; }
+      const reduce = index >= 8 && depth >= 4 && !f.stack[f.stack.length - 1].cap ? 1 : 0;
+      const v = -search(depth - 1 - reduce, -beta, -alpha, ply + 1);
+      f.undo();
+      index++;
       if (v > best) best = v;
       if (best > alpha) alpha = best;
       if (alpha >= beta) {
-        if (!m.captured) {
-          const key = m.from + '-' + m.to;
-          killers[ply] = key;
-          history.set(key, (history.get(key) || 0) + depth * depth);
-        }
+        const key = from * 90 + to;
+        if (!killers[ply] || killers[ply] !== key) killers[ply] = key;
+        history.set(key, (history.get(key) || 0) + depth * depth);
         break;
       }
     }
-    return best;
+    return best === -Infinity ? -MATE + ply : best;
   }
 
-  const rootMoves = match.legalMoves();
-  if (!rootMoves.length) return { ranked: [], selected: null, value: 0, nodes: 0, depth: 0 };
-  let ranked = rootMoves.map(m => ({ ...m, value: 0 })).sort((a, b) => (b.capture ? 1 : 0) - (a.capture ? 1 : 0));
+  // 根节点：用 match 的合法着法（带 id/label），顺序按吃子优先
+  let ranked = legalRoot.map(m => ({ ...m, value: 0 }))
+    .sort((a, b) => (b.capture ? 1 : 0) - (a.capture ? 1 : 0));
   let completedDepth = 0;
+  const byKey = new Map(ranked.map(m => [`${m.raw.from}-${m.raw.to}`, m]));
   for (let depth = 1; depth <= maxDepth; depth++) {
     const results = [];
     try {
       for (const entry of ranked) {
-        const v = -search(apply(root, entry.raw), depth - 1, -Infinity, Infinity, 1);
+        const from = entry.raw.from, to = entry.raw.to;
+        f.make(from, to);
+        const v = -search(depth - 1, -Infinity, Infinity, 1);
+        f.undo();
         results.push({ ...entry, value: v });
       }
       ranked = results.sort((a, b) => b.value - a.value);
@@ -267,7 +296,9 @@ function xqSearch(match, level, analysis) {
   let selected = ranked[0];
   if (!analysis && level === 1) selected = choice(ranked.slice(0, Math.min(4, ranked.length)));
   if (!analysis && level === 2) selected = choice(ranked.filter(m => m.value >= ranked[0].value - 90).slice(0, 3));
-  return { ranked, selected, value: (ranked[0]?.value || 0) * turn, nodes, depth: completedDepth };
+  // 保险：选中的着法必须在 match 的合法着法里，否则退回第一个合法着法
+  if (selected && !byKey.has(`${selected.raw.from}-${selected.raw.to}`)) selected = legalRoot[0];
+  return { ranked, selected, value: (ranked[0]?.value || 0) * side, nodes, depth: completedDepth };
 }
 
 function pieceSearch(match, level, analysis) {
