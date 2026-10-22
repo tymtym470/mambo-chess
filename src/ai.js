@@ -65,17 +65,34 @@ function chessEval(engine) {
 
 function xqEval(engine) {
   let score = 0;
-  for (const [s, p] of engine.board) {
-    const sign = p.color === 'red' ? 1 : -1;
-    const x = s % 9, y = Math.floor(s / 9);
-    const ry = p.color === 'red' ? y : 9 - y;          // 红方视角（红在下方，ry 小=靠前）
-    let v = XQ_VALUE[p.role];
-    const advance = 9 - ry;
-    if (p.role === 'pawn') v += advance * 12 + (advance >= 5 ? 80 : 0);
-    else if (p.role === 'horse') v += CENTER(x, 9 - ry, 9) * 14;
-    else if (p.role === 'cannon') v += CENTER(x, 9 - ry, 9) * 8;
-    else if (p.role === 'chariot') v += CENTER(x, 9 - ry, 9) * 6;
-    else if (p.role === 'king') v -= ry === 9 ? 0 : 30;  // 帅离位危险
+  const pawnFiles = new Map();
+  const own = { red: [], black: [] };
+  for (const [s, p] of engine.board) (p.color === 'red' ? own.red : own.black).push([s, p]);
+  for (const [, p] of own.red) if (p.role === 'pawn') { const f = 0; pawnFiles.set('red' + ((p, 0), 0), 0); }
+  // 车通：同一列上己方兵越少，车越值钱
+  const filePawns = { red: new Array(9).fill(0), black: new Array(9).fill(0) };
+  for (const color of ['red', 'black']) for (const [s2, p2] of color === 'red' ? own.red : own.black) {
+    if (p2.role === 'pawn') filePawns[color][s2 % 9] += 1;
+  }
+  for (const color of ['red', 'black']) for (const [s3, p3] of color === 'red' ? own.red : own.black) {
+    const sign = color === 'red' ? 1 : -1;
+    const x = s3 % 9, y = Math.floor(s3 / 9);
+    const advance = color === 'red' ? y : 9 - y;      // 越大=越深入对面
+    const center = Math.max(0, 4 - Math.abs(x - 4));
+    let v = XQ_VALUE[p3.role];
+    if (p3.role === 'pawn') {
+      v += Math.max(0, advance - 2) * 14 + (advance >= 5 ? 90 : 0) + center * 4;
+    } else if (p3.role === 'horse') {
+      v += center * 16 - (x === 0 || x === 8 ? 18 : 0);
+    } else if (p3.role === 'cannon') {
+      v += center * 10 + (x === 4 ? 12 : 0);
+    } else if (p3.role === 'chariot') {
+      v += (2 - filePawns[color][x]) * 14 + center * 6;
+    } else if (p3.role === 'advisor' || p3.role === 'elephant') {
+      v += advance >= 6 ? 20 : -25;                    // 守家才值钱，跑出来反而亏
+    } else if (p3.role === 'king') {
+      v -= advance < 8 ? 40 : 0;                       // 帅离宫危险
+    }
     score += sign * v;
   }
   return score;
@@ -182,9 +199,15 @@ function xqSearch(match, level, analysis) {
     }
     return out;
   };
-  const order = moves => moves.map(m => ({
-    m, s: (m.captured ? XQ_VALUE[m.captured] : 0) * 10 - XQ_VALUE[root.board.get(m.from)?.role || 'pawn'],
-  })).sort((a, b) => b.s - a.s).map(o => o.m);
+  const history = new Map(), killers = [];
+  const order = (moves, ply = 0) => moves.map(m => {
+    const key = m.from + '-' + m.to;
+    let score = 0;
+    if (m.captured) score += 200000 + (XQ_VALUE[m.captured] || 0) * 10 - (XQ_VALUE[root.board.get(m.from)?.role] || 0);
+    if (killers[ply] === key) score += 90000;
+    score += history.get(key) || 0;
+    return { m, s: score };
+  }).sort((a, b) => b.s - a.s).map(o => o.m);
   const apply = (pos, m) => { const next = pos.clone(); next.play({ from: m.from, to: m.to }); return next; };
 
   function quiesce(pos, alpha, beta, depth) {
@@ -207,13 +230,20 @@ function xqSearch(match, level, analysis) {
     if (depth <= 1) return quiesce(pos, alpha, beta, 2);
     let best = -Infinity;
     let index = 0;
-    for (const m of order(moves)) {
+    for (const m of order(moves, ply)) {
       const reduce = index >= 6 && depth >= 3 && !m.captured ? 1 : 0;
       const v = -search(apply(pos, m), depth - 1 - reduce, -beta, -alpha, ply + 1);
       index += 1;
       if (v > best) best = v;
       if (best > alpha) alpha = best;
-      if (alpha >= beta) break;
+      if (alpha >= beta) {
+        if (!m.captured) {
+          const key = m.from + '-' + m.to;
+          killers[ply] = key;
+          history.set(key, (history.get(key) || 0) + depth * depth);
+        }
+        break;
+      }
     }
     return best;
   }
