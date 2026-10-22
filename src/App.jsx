@@ -199,14 +199,14 @@ export default function App() {
   const [selected, setSelected] = useState(null), [hint, setHint] = useState(null);
   const [flipped, setFlipped] = useState(false), [focus, setFocus] = useState(false);
   const [modal, setModal] = useState(null), [confirm, setConfirm] = useState(null);
-  const [immersive, setImmersive] = useState(false), [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
+  const [intro, setIntro] = useState(0), [immersive, setImmersive] = useState(false), [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
   const [promotion, setPromotion] = useState(null), [toast, setToast] = useState('');
   const [thinking, setThinking] = useState(false), [analysisBusy, setAnalysisBusy] = useState(false), [apiBusy, setApiBusy] = useState(false);
   const [analysis, setAnalysis] = useState(null), [remoteAnalysis, setRemoteAnalysis] = useState(null);
   const [analysisVersion, setAnalysisVersion] = useState(0), [seconds, setSeconds] = useState(0);
   const [catMood, setCatMood] = useState('idle'), [aiError, setAiError] = useState(false);
   const [taunt, setTaunt] = useState({ text: '盯紧棋盘，曼波正在观察。', mood: 'idle', kind: 'idle', active: false, sequence: 0 });
-  const apiController = useRef(null), toastTimeout = useRef(null), tauntTimer = useRef(null), boardWrap = useRef(null);
+  const apiController = useRef(null), toastTimeout = useRef(null), tauntTimer = useRef(null), boardWrap = useRef(null), introTimer = useRef(null);
   const leaseToken = useRef(globalThis.crypto?.randomUUID?.() || `mambo-${Date.now()}-${Math.random()}`);
   const liveMatch = useMemo(() => new Match(game), [game]);
   const match = liveMatch;
@@ -433,7 +433,7 @@ export default function App() {
   }
   function startGame(kind = game.kind, size = game.size) {
     setGame(freshGame(kind, kind === 'go' ? ([19, 9, 13].includes(size) ? size : 19) : undefined));
-    setSeconds(0); setFlipped(settings.side === -1); setModal(null); setCatMood(moodForEvent('start')); sound.play('start');
+    setSeconds(0); setFlipped(settings.side === -1); setModal(null); setIntro(v => v + 1); clearTimeout(introTimer.current); introTimer.current = setTimeout(() => setIntro(0), 2600); setCatMood(moodForEvent('start')); sound.play('start');
   }
   function changeGame(kind) { if (kind !== game.kind) guardChange(() => startGame(kind)); }
   function changeSettingGame(key, value) {
@@ -575,6 +575,13 @@ export default function App() {
     </Modal>}
     {modal === 'engine' && <Modal title="选择 AI 引擎" onClose={() => setModal(null)}><div className="engine-options"><button className={settings.provider === 'local' ? 'active' : ''} onClick={() => { setting('provider', 'local'); setModal(null); }}><Cpu size={23}/><div><strong>内置本地战术引擎</strong><span>已嵌入项目 · 五级难度 · 无需密钥</span></div>{settings.provider === 'local' && <Check size={18}/>}</button><button className={settings.provider === 'api' ? 'active' : ''} onClick={() => { if (!api.key && !serverInfo.configured && !api.baseUrl.startsWith('http://localhost') && !api.baseUrl.startsWith('http://127.0.0.1')) { setModal('api'); return; } setting('provider', 'api'); setModal(null); }}><PlugZap size={23}/><div><strong>模型 API 对弈</strong><span>{api.model} · 合法着校验</span></div>{settings.provider === 'api' && <Check size={18}/>}</button></div><button className="text-button full-width" onClick={() => setModal('api')}>配置模型连接<ChevronRight size={15}/></button></Modal>}
     {modal === 'board' && <Modal title="棋盘操作" onClose={() => setModal(null)}><div className="board-menu"><button onClick={() => { setModal(null); guardChange(() => startGame()); }}><Plus size={18}/>开始新对局<ChevronRight size={16}/></button><button onClick={() => { setFlipped(f => !f); setModal(null); }}><RotateCw size={18}/>翻转棋盘<ChevronRight size={16}/></button>{game.kind === 'go' && <button onClick={() => { setModal(null); performMove('pass'); }} disabled={!!match.result || match.scoring || thinking}><SkipForward size={18}/>停一手<ChevronRight size={16}/></button>}<button onClick={() => { setModal(null); setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })) }); }} disabled={!!match.result || thinking || !game.moves.length}><Flag size={18}/>认输<ChevronRight size={16}/></button></div></Modal>}
+    {intro > 0 && <div className="intro-veil" key={intro} aria-hidden="true">
+      <div className="intro-ring r1"/><div className="intro-ring r2"/><div className="intro-ring up"/>
+      <div className="intro-outline"/><div className="intro-glow"/>
+      <div className="intro-piece">{[game.kind === 'xiangqi' ? '帥' : game.kind === 'chess' ? '♞' : '●'][0]}</div>
+      <div className="intro-general left">{game.kind === 'xiangqi' ? '将' : '黑'}</div>
+      <div className="intro-general right">{game.kind === 'xiangqi' ? '帥' : '白'}</div>
+    </div>}
     {modal === 'lobby' && <Modal title="联机大厅" onClose={() => setModal(null)} wide>
       <div className="lobby-nick"><label htmlFor="nick-input">我的昵称</label><input id="nick-input" maxLength={12} value={draftNick} placeholder="输个名字，对手才认得出你" onChange={e => setDraftNick(e.target.value)}/></div>
       <div className="lobby-meta"><span className="live-dot"/>在线 {88 + FAKE_PLAYERS.length} 人 · 空闲桌 {FAKE_PLAYERS.length - 1} 张<span className="lobby-ms">延迟 {18 + (Date.now() % 23)}ms</span></div>

@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 700" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="wood" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6f4f33"/>
+      <stop offset=".5" stop-color="#5d4128"/>
+      <stop offset="1" stop-color="#4a3320"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx=".5" cy=".18" r=".75">
+      <stop offset="0" stop-color="#ffd9a0" stop-opacity=".5"/>
+      <stop offset=".55" stop-color="#ffd9a0" stop-opacity=".12"/>
+      <stop offset="1" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="grain3">
+      <feTurbulence type="fractalNoise" baseFrequency=".02 .7" numOctaves="3" seed="4" result="n"/>
+      <feColorMatrix in="n" type="saturate" values="0"/>
+      <feComponentTransfer><feFuncA type="linear" slope=".18"/></feComponentTransfer>
+    </filter>
+  </defs>
+  <rect width="900" height="700" fill="url(#wood)"/>
+  <!-- 木纹 -->
+  <g stroke="#3d2a18" stroke-opacity=".35" fill="none">
+    <path d="M0 90 C220 70 420 108 900 84"/>
+    <path d="M0 180 C260 206 520 156 900 190"/>
+    <path d="M0 300 C200 274 480 322 900 292"/>
+    <path d="M0 430 C300 456 560 404 900 440"/>
+    <path d="M0 560 C240 534 600 578 900 548"/>
+  </g>
+  <rect width="900" height="700" fill="url(#lamp)"/>
+  <rect width="900" height="700" filter="url(#grain3)" opacity=".55"/>
+</svg>

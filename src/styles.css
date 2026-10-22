@@ -989,3 +989,93 @@ html:fullscreen .topbar { border-radius: 0; }
 .sound-pill.on { color: #2f7a5f; border-color: rgba(47, 122, 95, .5); background: rgba(229, 240, 231, .9); }
 html[data-theme="dark"] .sound-pill { background: rgba(26, 36, 34, .82); border-color: rgba(80, 108, 98, .6); color: #a9c3b4; }
 html[data-theme="dark"] .sound-pill.on { color: #7fd3ac; border-color: rgba(111, 208, 165, .5); background: rgba(39, 74, 60, .8); }
+
+/* ===== 开局落子动画 ===== */
+.intro-veil { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; pointer-events: none; }
+.intro-veil::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at 50% 48%, rgba(255, 236, 195, .55), rgba(25, 18, 10, .72) 62%); animation: veilFade 2.5s ease forwards; }
+@keyframes veilFade { 0% { opacity: 0 } 18% { opacity: 1 } 78% { opacity: 1 } 100% { opacity: 0 } }
+
+.intro-piece {
+  position: relative; font-size: 86px; line-height: 1; color: #f7e9c8;
+  text-shadow: 0 0 18px rgba(255, 205, 120, .9), 0 0 46px rgba(255, 176, 64, .55);
+  animation: pieceDrop 2.4s cubic-bezier(.22, .9, .2, 1) forwards;
+}
+@keyframes pieceDrop {
+  0% { transform: translateY(-190px) scale(.55); opacity: 0 }
+  22% { transform: translateY(0) scale(1.06); opacity: 1 }
+  30% { transform: translateY(0) scale(1); }
+  34% { filter: drop-shadow(0 0 0 rgba(255, 200, 110, 0)) }
+  42% { filter: drop-shadow(0 0 26px rgba(255, 214, 130, 1)) }
+  100% { transform: translateY(0) scale(1); opacity: 0 }
+}
+/* 描边：落地瞬间的一圈亮边 */
+.intro-outline {
+  position: absolute; width: 132px; height: 132px; border-radius: 50%;
+  border: 2px solid rgba(255, 232, 170, .95);
+  animation: outlinePulse 2.4s ease-out forwards;
+}
+@keyframes outlinePulse {
+  0%, 20% { transform: scale(.4); opacity: 0 }
+  30% { transform: scale(1); opacity: 1 }
+  46% { transform: scale(1.15); opacity: .75 }
+  100% { transform: scale(1.6); opacity: 0 }
+}
+/* 金光 */
+.intro-glow {
+  position: absolute; width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 224, 150, .95), rgba(255, 186, 84, .35) 45%, rgba(255, 186, 84, 0) 70%);
+  animation: glowBurst 2.4s ease-out forwards;
+}
+@keyframes glowBurst {
+  0%, 26% { transform: scale(.2); opacity: 0 }
+  36% { transform: scale(1); opacity: 1 }
+  70% { transform: scale(3.4); opacity: .35 }
+  100% { transform: scale(5); opacity: 0 }
+}
+/* 扩散圆环：一对向外，一对向上 */
+.intro-ring {
+  position: absolute; width: 140px; height: 140px; border-radius: 50%;
+  border: 2px solid rgba(255, 226, 164, .8);
+  animation: ringOut 2.4s cubic-bezier(.15, .8, .25, 1) forwards;
+}
+.intro-ring.r2 { animation-delay: .12s; border-color: rgba(255, 240, 200, .55); }
+@keyframes ringOut {
+  0%, 24% { transform: scale(.35); opacity: 0 }
+  32% { opacity: .95 }
+  100% { transform: scale(4.2); opacity: 0 }
+}
+.intro-ring.up { animation-name: ringUp; }
+@keyframes ringUp {
+  0%, 26% { transform: translateY(0) scale(.6); opacity: 0 }
+  36% { opacity: .9 }
+  100% { transform: translateY(-190px) scale(1.7); opacity: 0 }
+}
+/* 两员大将自上方落下 */
+.intro-general {
+  position: absolute; top: 16%; font-size: 46px; color: #ffe6b8;
+  text-shadow: 0 0 16px rgba(255, 190, 90, .8);
+  animation: generalDown 2.4s ease-in forwards;
+}
+.intro-general.left { left: 28%; animation-delay: .45s; }
+.intro-general.right { right: 28%; animation-delay: .6s; }
+@keyframes generalDown {
+  0% { transform: translateY(-60px) scale(.7); opacity: 0 }
+  40% { transform: translateY(0) scale(1); opacity: 1 }
+  75% { opacity: .9 }
+  100% { transform: translateY(26px) scale(1.05); opacity: 0 }
+}
+
+/* ===== 棋盘底下的木桌背景 ===== */
+.play-area { position: relative; }
+.play-area::before {
+  content: ''; position: absolute; z-index: -1; inset: -16px -12px -10px;
+  border-radius: 26px;
+  background: url('./bg/desk.svg') center / cover no-repeat;
+  box-shadow: 0 22px 60px rgba(30, 20, 10, .3);
+  opacity: .92;
+}
+.play-area { padding: 12px; }
+html[data-theme="dark"] .play-area::before { filter: brightness(.55) saturate(.85); }
+
+/* ===== 象棋棋子：更像真木头/象牙 ===== */
+.board-cell .xq-disc { filter: drop-shadow(0 2px 3px rgba(60, 40, 18, .45)); }

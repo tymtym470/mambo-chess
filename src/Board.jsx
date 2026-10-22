@@ -34,7 +34,10 @@ export default function Board({ match, selected, onCell, hint, flipped, numbers,
       <defs>
         <radialGradient id="black-stone" cx=".32" cy=".24" r=".75"><stop stopColor="#7d8a84"/><stop offset=".42" stopColor="#33403a"/><stop offset="1" stopColor="#1a2320"/></radialGradient>
         <radialGradient id="white-stone" cx=".32" cy=".25" r=".8"><stop stopColor="#fffef9"/><stop offset=".55" stopColor="#f7f3e8"/><stop offset="1" stopColor="#d3c9b4"/></radialGradient>
-        <linearGradient id="xq-piece" x1="0" y1="0" x2=".8" y2="1"><stop stopColor="#fffdf6"/><stop offset="1" stopColor="#e9dcc2"/></linearGradient>
+        <linearGradient id="xq-piece" x1=".2" y1="0" x2=".85" y2="1"><stop stopColor="#fffdf3"/><stop offset=".52" stopColor="#f6ead2"/><stop offset="1" stopColor="#d9c39a"/></linearGradient>
+        <radialGradient id="xq-shade" cx=".5" cy=".32" r=".72"><stop stopColor="#ffffff" stopOpacity=".85"/><stop offset=".62" stopColor="#ffffff" stopOpacity="0"/><stop offset="1" stopColor="#8a6a3c" stopOpacity=".26"/></radialGradient>
+        <linearGradient id="xq-text" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#c0483a"/><stop offset="1" stopColor="#8f2f24"/></linearGradient>
+        <linearGradient id="xq-text-black" x1="0" y1="0" x2="0" y2="1"><stop stopColor="#31463a"/><stop offset="1" stopColor="#16241c"/></linearGradient>
         <filter id="stone-shadow" x="-40%" y="-40%" width="180%" height="190%"><feDropShadow dx="0" dy="3" stdDeviation="2.2" floodColor="#2d5040" floodOpacity=".25"/></filter>
       </defs>
       {isChess ? <g>{Array.from({ length: 64 }, (_, i) => {
@@ -77,7 +80,12 @@ export default function Board({ match, selected, onCell, hint, flipped, numbers,
           {piece && <g pointerEvents="none" className={isLast ? 'piece piece-new' : 'piece'} style={{ transformOrigin: `${px}px ${py}px`, opacity: isDead ? .25 : 1 }}>
             {isChess ? <text x={px} y={py + 1} dominantBaseline="central" textAnchor="middle" fontSize={step * .82} className={`chess-piece ${piece.side === 1 ? 'light-piece' : 'dark-piece'}`} stroke={piece.side === 1 ? '#63756b' : '#24392d'} strokeWidth="1" paintOrder="stroke fill" fill={piece.side === 1 ? '#fffef7' : '#2a3d31'}>{CHESS_GLYPHS[piece.role]}</text>
               : <><circle cx={px} cy={py} r={r} fill={xq ? 'url(#xq-piece)' : piece.side === 1 ? 'url(#black-stone)' : 'url(#white-stone)'} filter="url(#stone-shadow)" stroke={xq ? '#c7d0c9' : piece.side === 1 ? '#34423a' : '#d7dfd9'} strokeWidth="1"/>
-                {xq ? <><circle cx={px} cy={py} r={r - 4} stroke={piece.side === 1 ? '#be6154' : '#475e50'} strokeWidth=".9" fill="none"/><text x={px} y={py + 1} dominantBaseline="central" textAnchor="middle" fontFamily="'STKaiti','KaiTi',serif" fontSize={step * .49} fill={piece.side === 1 ? '#bb594b' : '#344b3d'}>{PIECE_NAMES[piece.side === 1 ? 'red' : 'black'][piece.role]}</text></>
+                {xq ? <>
+                    <circle cx={px} cy={py} r={r} fill="url(#xq-piece)" stroke={piece.side === 1 ? '#9c6a3f' : '#6f5132'} strokeWidth={r * .09}/>
+                    <circle cx={px} cy={py} r={r * .82} fill="url(#xq-shade)"/>
+                    <circle cx={px} cy={py} r={r - r * .18} stroke={piece.side === 1 ? '#c0705f' : '#4d6a58'} strokeWidth={r * .05} fill="none" opacity=".85"/>
+                    <text x={px} y={py + r * .06} dominantBaseline="central" textAnchor="middle" fontFamily="'STKaiti','KaiTi',serif" fontWeight="600" fontSize={r * 1.02} fill={piece.side === 1 ? 'url(#xq-text)' : 'url(#xq-text-black)'} style={{ paintOrder: 'stroke' }} stroke={piece.side === 1 ? '#f7e7cd' : '#e8dcc2'} strokeWidth={r * .06}>{PIECE_NAMES[piece.side === 1 ? 'red' : 'black'][piece.role]}</text>
+                  </>
                   : number ? <text x={px} y={py + 1} dominantBaseline="central" textAnchor="middle" fontSize={step * .37} fill={piece.side === 1 ? '#fff' : '#3e5646'}>{number}</text>
                     : isLast && <circle cx={px} cy={py} r={step * .09} fill="#ec927d"/>}
               </>}
