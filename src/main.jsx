@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.jsx';
 import './styles.css';
+import './theme.css';
 import { MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_URL } from './mascot.js';
 
 class ErrorBoundary extends React.Component {

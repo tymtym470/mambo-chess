@@ -455,7 +455,7 @@ export default function App() {
     return <div className={`player-row ${active ? 'is-turn' : ''} ${bottom ? 'bottom-player' : ''}`}>
       <div className={`player-avatar ${isBot ? 'bot-avatar' : ''}`}>{isBot ? <RemoteCat mood="avatar"/> : <span>{side === 1 ? '你' : '友'}</span>}<i className={`side-dot ${game.kind === 'chess' ? (side === 1 ? 'white' : 'black') : game.kind === 'xiangqi' ? (side === 1 ? 'red' : 'black') : side === 1 ? 'black' : 'white'}`}/></div>
       <div className="player-identity"><strong>{playerLabel(side)}{isBot && (rival ? <span className="tiny-badge">在线</span> : <span className="tiny-badge">AI</span>)}</strong><span>{sideName(game.kind, side)}<b>·</b>{isBot ? `Lv.${settings.level} ${LEVELS[settings.level - 1]}` : settings.mode === 'human' ? '同屏对弈' : '自在落子'}</span></div>
-      <div className="player-state">{active && thinking && isBot ? <><LoaderCircle size={14} className="spin"/>思考中</> : active && !match.scoring ? <><span className="live-dot"/>执棋中</> : <span className="muted">{match.result ? '已结束' : '等待中'}</span>}</div>
+      <div className="player-state">{active && thinking && isBot ? <><LoaderCircle size={14} className="spin"/>思考中</> : active && !match.scoring ? <>执棋中</> : <span className="muted">{match.result ? '已结束' : '等待中'}</span>}</div>
       {game.kind === 'go' && <span className="capture-counter">提子 {match.engine.getCaptures(side)}</span>}
     </div>;
   }
@@ -480,10 +480,10 @@ export default function App() {
     <div className="ambient-background" aria-hidden="true"><div className="light-ribbon ribbon-one"/><div className="light-ribbon ribbon-two"/><div className="light-ribbon ribbon-three"/></div>
     <header className="topbar">
       <button className="brand" onClick={() => startGame()} aria-label="曼波棋社新对局"><RemoteCat mood="avatar" className="brand-cat"/><span><strong>曼波棋社<span className="brand-dot">.</span></strong><small>MAMBO CHESS CLUB</small></span></button>
-      <div className="header-note"><Swords size={15}/>四棋一桌<span className="header-note-dot"/>现在专注对弈</div>
+      <div className="header-note"><Swords size={15}/>四棋一桌现在专注对弈</div>
       <div className="header-actions"><button className={`api-status ${apiConnected ? 'connected' : ''} ${apiError ? 'error' : ''}`} title={apiError || '打开 API 设置'} onClick={() => setModal('api')}><span className="status-dot"/><span>{apiStatusLabel}</span><PlugZap size={14}/></button><span className="header-divider"/><button className={`sound-pill ${settings.enabled ? 'on' : ''}`} onClick={() => setting('enabled', !settings.enabled)} title={settings.enabled ? '关闭全部音效' : '开启全部音效'}>{settings.enabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}<span>{settings.enabled ? '声音开' : '静音'}</span></button><IconButton icon={Settings2} label="偏好设置" onClick={() => setModal('settings')}/></div>
     </header>
-    <div className="workspace-heading"><div><div className="eyebrow"><span/> A LITTLE PAUSE. A GOOD MOVE.</div><h1>好棋，慢慢下<span>。</span></h1></div><div className="room-label"><span className="live-dot"/>我的休闲棋室<span className="room-number">NO. 001</span></div></div>
+    <div className="workspace-heading"><div><h1>好棋，慢慢下<span>。</span></h1></div><div className="room-label">我的休闲棋室<span className="room-number">NO. 001</span></div></div>
     <main className="workspace">
       <aside className="left-sidebar">
         <div className="sidebar-heading"><span>今天，下点什么</span><span className="micro-text">01 / 04</span></div>
@@ -515,7 +515,7 @@ export default function App() {
         </div>
         {playerRow(bottomSide, true)}
         {match.scoring && !match.result && goScore && <div className="scoring-bar"><div><strong>终局数子</strong><span>黑 {goScore.black.toFixed(1)}（地 {goScore.territory.black} + 提 {goScore.prisoners.black}） · 白 {goScore.white.toFixed(1)}（地 {goScore.territory.white} + 提 {goScore.prisoners.white}，含贴目）</span></div><button className="secondary-button" onClick={() => setGame(g => ({ ...g, moves: g.moves.slice(0, -2), dead: [] }))}>继续对弈</button><button className="primary-button" onClick={() => setConfirm({ title: '双方确认数子结果？', message: '已标记的死子将移除，按地盘与提子计算，白方贴 6.5 目。', action: () => { setGame(g => ({ ...g, scoreAccepted: true })); sound.play('win'); } })}>确认结果</button></div>}
-        <div className="board-toolbar"><div className="toolbar-group"><IconButton icon={RotateCcw} label="悔棋" onClick={undoMove} disabled={!game.moves.length || !!match.result}/><IconButton icon={RotateCw} label="翻转棋盘" onClick={() => setFlipped(f => !f)}/><IconButton icon={Lightbulb} label="显示提示" onClick={() => showHint()} active={!!hint} disabled={!!match.result || match.scoring}/></div><div className="board-turn-status" aria-live="polite">{thinking ? <><span className="thinking-dots"><i/><i/><i/></span>{rival ? `${rival.name} 正在想…` : '曼波正在想下一步'}</> : match.result ? `${resultLabel} · ${match.result.reason}` : match.scoring ? '双方停着 · 点选死子' : <><span className="live-dot"/>{sideName(game.kind, match.turn)}落子{match.check ? ' · 将军！' : ''}</>}</div><div className="toolbar-group"><IconButton icon={Flag} label="认输" disabled={!!match.result || thinking || !game.moves.length} onClick={() => setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => { setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })); sound.play('win'); } })}/><IconButton icon={MoreHorizontal} label="更多棋盘操作" onClick={() => setModal('board')}/></div></div>
+        <div className="board-toolbar"><div className="toolbar-group"><IconButton icon={RotateCcw} label="悔棋" onClick={undoMove} disabled={!game.moves.length || !!match.result}/><IconButton icon={RotateCw} label="翻转棋盘" onClick={() => setFlipped(f => !f)}/><IconButton icon={Lightbulb} label="显示提示" onClick={() => showHint()} active={!!hint} disabled={!!match.result || match.scoring}/></div><div className="board-turn-status" aria-live="polite">{thinking ? <><span className="thinking-dots"><i/><i/><i/></span>{rival ? `${rival.name} 正在想…` : '曼波正在想下一步'}</> : match.result ? `${resultLabel} · ${match.result.reason}` : match.scoring ? '双方停着 · 点选死子' : <>{sideName(game.kind, match.turn)}落子{match.check ? ' · 将军！' : ''}</>}</div><div className="toolbar-group"><IconButton icon={Flag} label="认输" disabled={!!match.result || thinking || !game.moves.length} onClick={() => setConfirm({ title: '确定认输？', message: '结束当前对局，结果会清晰显示在棋盘下方。', action: () => { setGame(g => ({ ...g, resigned: settings.mode === 'ai' ? settings.side : match.turn })); sound.play('win'); } })}/><IconButton icon={MoreHorizontal} label="更多棋盘操作" onClick={() => setModal('board')}/></div></div>
         {apiError && <section className="api-error-panel" role="alert">
           <strong>{aiError ? 'API 落子暂停' : 'API 请求失败'}</strong><p>{apiError}</p><ApiDiagnostics details={apiDetails}/>
           <div className="api-error-actions">
@@ -528,7 +528,7 @@ export default function App() {
         <div className="board-footnote"><span><ShieldCheck size={12}/>合法落子校验</span><span><Clock3 size={12}/>{minute(seconds)}</span><span>{kindInfo.rule}</span></div>
       </section>
       <aside className="right-sidebar">
-      <div className={`analyst-intro mascot-${mascotState}`}><div className="analyst-label"><span className="eyebrow">YOUR SIDEKICK</span><span className="small-badge"><span className="live-dot"/>在你身边</span></div><div className="cat-greeting"><div><h2>哈基米研究所<span>✦</span></h2><p>{match.result ? resultLabel : thinking ? '等一下，猫脑正在运转。' : match.check ? '将军了，先稳住。' : '不着急，陪你想下一步。'}</p></div><button className="mascot-button" title={`${MAMBO_CAT_SOURCE} · 听一声曼波`} aria-label="听一声曼波" onClick={() => { sound.play('mascot', true); setCatMood('dance'); setTimeout(() => setCatMood('idle'), 700); }}><RemoteCat mood={mascotState}/></button></div></div>
+      <div className={`analyst-intro mascot-${mascotState}`}><div className="analyst-label"><span className="eyebrow">YOUR SIDEKICK</span><span className="small-badge">在你身边</span></div><div className="cat-greeting"><div><h2>哈基米研究所<span>✦</span></h2><p>{match.result ? resultLabel : thinking ? '等一下，猫脑正在运转。' : match.check ? '将军了，先稳住。' : '不着急，陪你想下一步。'}</p></div><button className="mascot-button" title={`${MAMBO_CAT_SOURCE} · 听一声曼波`} aria-label="听一声曼波" onClick={() => { sound.play('mascot', true); setCatMood('dance'); setTimeout(() => setCatMood('idle'), 700); }}><RemoteCat mood={mascotState}/></button></div></div>
         <div className="panel-tabs single"><button className="active"><Sparkles size={15}/>棋盘分析</button><span className="micro-text">{analysisBusy ? '计算中' : 'LOCAL EVALUATION'}</span></div>
         <div className="analysis-content">
           <div className="analysis-heading"><span>局势观察</span><span className="micro-text">{analysisBusy ? '计算中' : 'TACTICAL ENGINE'}</span></div>
@@ -584,7 +584,7 @@ export default function App() {
     </div>}
     {modal === 'lobby' && <Modal title="联机大厅" onClose={() => setModal(null)} wide>
       <div className="lobby-nick"><label htmlFor="nick-input">我的昵称</label><input id="nick-input" maxLength={12} value={draftNick} placeholder="输个名字，对手才认得出你" onChange={e => setDraftNick(e.target.value)}/></div>
-      <div className="lobby-meta"><span className="live-dot"/>在线 {88 + FAKE_PLAYERS.length} 人 · 空闲桌 {FAKE_PLAYERS.length - 1} 张<span className="lobby-ms">延迟 {18 + (Date.now() % 23)}ms</span></div>
+      <div className="lobby-meta">在线 {88 + FAKE_PLAYERS.length} 人 · 空闲桌 {FAKE_PLAYERS.length - 1} 张<span className="lobby-ms">延迟 {18 + (Date.now() % 23)}ms</span></div>
       <div className="lobby-ticker">{LOBBY_TICKER[Math.floor(Date.now() / 1000) % LOBBY_TICKER.length]}</div>
       <div className="lobby-list">{FAKE_PLAYERS.map(p => (
         <button key={p.id} className={`lobby-row ${rival?.id === p.id ? 'active' : ''}`} onClick={() => {
