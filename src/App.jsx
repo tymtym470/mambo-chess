@@ -1,11 +1,12 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Cpu, Flag, Github,
+  AudioLines, BarChart3, Bot, Check, ChevronDown, ChevronRight, CircleHelp, Clock3, Columns2, Cpu, Flag, Github,
   Lightbulb, LoaderCircle, Maximize2, Minimize2, MonitorSmartphone, Moon, MoreHorizontal, PlugZap, Plus,
   RefreshCw, RotateCcw, RotateCw, Settings2, ShieldCheck, SkipForward, Sparkles, Sun, Swords, Users,
   Volume2, VolumeX, X,
 } from 'lucide-react';
 import Board, { GameGlyph } from './Board.jsx';
+import MiniGame from './MiniGame.jsx';
 import { advance, CHESS_GLYPHS, freshGame, GAMES, LEVELS, Match, sideName, undo } from './game.js';
 import { MAMBO_TAUNT_LINE, sound } from './audio.js';
 import { readStorage, validateGame, writeStorage } from './storage.js';
@@ -199,7 +200,7 @@ export default function App() {
   const [selected, setSelected] = useState(null), [hint, setHint] = useState(null);
   const [flipped, setFlipped] = useState(false), [focus, setFocus] = useState(false);
   const [modal, setModal] = useState(null), [confirm, setConfirm] = useState(null);
-  const [intro, setIntro] = useState(0), [immersive, setImmersive] = useState(false), [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
+  const [split, setSplit] = useState(false), [splitSeed, setSplitSeed] = useState(null), [intro, setIntro] = useState(0), [immersive, setImmersive] = useState(false), [rival, setRival] = useState(null), [nick, setNick] = useState(() => readStorage('mambo-nick', '')), [draftNick, setDraftNick] = useState('');
   const [promotion, setPromotion] = useState(null), [toast, setToast] = useState('');
   const [thinking, setThinking] = useState(false), [analysisBusy, setAnalysisBusy] = useState(false), [apiBusy, setApiBusy] = useState(false);
   const [analysis, setAnalysis] = useState(null), [remoteAnalysis, setRemoteAnalysis] = useState(null);
@@ -228,6 +229,12 @@ export default function App() {
   }
   const mascotState = match.result ? match.result.winner === 0 ? 'draw' : match.result.winner === settings.side ? 'win' : 'lose' : thinking ? 'think' : match.check ? 'check' : catMood;
 
+  // 分屏：把当前局面复制一份到右边，两块棋盘各下各的
+  function toggleSplit() {
+    if (split) { setSplit(false); return; }
+    setSplitSeed({ ...game, moves: [...game.moves], dead: [...(game.dead || [])] });
+    setSplit(true);
+  }
   function notify(message) {
     setToast(message); clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast(''), 4500);
@@ -481,10 +488,10 @@ export default function App() {
     <header className="topbar">
       <button className="brand" onClick={() => startGame()} aria-label="曼波棋社新对局"><RemoteCat mood="avatar" className="brand-cat"/><span><strong>曼波棋社<span className="brand-dot">.</span></strong><small>MAMBO CHESS CLUB</small></span></button>
       <div className="header-note"><Swords size={15}/>四棋一桌现在专注对弈</div>
-      <div className="header-actions"><button className={`api-status ${apiConnected ? 'connected' : ''} ${apiError ? 'error' : ''}`} title={apiError || '打开 API 设置'} onClick={() => setModal('api')}><span className="status-dot"/><span>{apiStatusLabel}</span><PlugZap size={14}/></button><span className="header-divider"/><button className={`sound-pill ${settings.enabled ? 'on' : ''}`} onClick={() => setting('enabled', !settings.enabled)} title={settings.enabled ? '关闭全部音效' : '开启全部音效'}>{settings.enabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}<span>{settings.enabled ? '声音开' : '静音'}</span></button><IconButton icon={Settings2} label="偏好设置" onClick={() => setModal('settings')}/></div>
+      <div className="header-actions"><button className={`api-status ${apiConnected ? 'connected' : ''} ${apiError ? 'error' : ''}`} title={apiError || '打开 API 设置'} onClick={() => setModal('api')}><span className="status-dot"/><span>{apiStatusLabel}</span><PlugZap size={14}/></button><button className={`split-pill ${split ? 'on' : ''}`} onClick={toggleSplit} title={split ? '关闭分屏' : '分屏，两局并下'} aria-label={split ? '关闭分屏' : '开启分屏'}><Columns2 size={15}/><span>{split ? '分屏中' : '分屏'}</span></button><span className="header-divider"/><button className={`sound-pill ${settings.enabled ? 'on' : ''}`} onClick={() => setting('enabled', !settings.enabled)} title={settings.enabled ? '关闭全部音效' : '开启全部音效'}>{settings.enabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}<span>{settings.enabled ? '声音开' : '静音'}</span></button><IconButton icon={Settings2} label="偏好设置" onClick={() => setModal('settings')}/></div>
     </header>
     <div className="workspace-heading"><div><h1>好棋，慢慢下<span>。</span></h1></div><div className="room-label">我的休闲棋室<span className="room-number">NO. 001</span></div></div>
-    <main className="workspace">
+    <main className={`workspace ${split ? 'split-mode' : ''}`}>
       <aside className="left-sidebar">
         <div className="sidebar-heading"><span>今天，下点什么</span><span className="micro-text">01 / 04</span></div>
         <div className="game-selector" role="tablist" aria-label="棋种">{Object.entries(GAMES).map(([kind, info]) => <button key={kind} role="tab" aria-selected={game.kind === kind} className={`game-option ${game.kind === kind ? 'active' : ''}`} onClick={() => changeGame(kind)}><span className={`game-thumb game-${kind}`}><GameGlyph kind={kind}/></span><span className="game-label"><strong>{info.name}</strong><small>{info.en}</small></span><span className="game-option-end">{game.kind === kind ? <span className="selected-dot"/> : <ChevronRight size={15}/>}</span></button>)}</div>
@@ -526,7 +533,9 @@ export default function App() {
         </section>}
         {aiError && !apiError && <button className="retry-ai" onClick={() => setAnalysisVersion(v => v + 1)}><RefreshCw size={14}/>重新请求 AI 落子</button>}
         <div className="board-footnote"><span><ShieldCheck size={12}/>合法落子校验</span><span><Clock3 size={12}/>{minute(seconds)}</span><span>{kindInfo.rule}</span></div>
-      </section>
+            </section>
+      {split && <MiniGame key={splitSeed ? splitSeed.moves.length + splitSeed.kind : 'empty'} seed={splitSeed} level={settings.level} onClose={() => setSplit(false)} />}
+
       <aside className="right-sidebar">
       <div className={`analyst-intro mascot-${mascotState}`}><div className="analyst-label"><span className="eyebrow">YOUR SIDEKICK</span><span className="small-badge">在你身边</span></div><div className="cat-greeting"><div><h2>哈基米研究所<span>✦</span></h2><p>{match.result ? resultLabel : thinking ? '等一下，猫脑正在运转。' : match.check ? '将军了，先稳住。' : '不着急，陪你想下一步。'}</p></div><button className="mascot-button" title={`${MAMBO_CAT_SOURCE} · 听一声曼波`} aria-label="听一声曼波" onClick={() => { sound.play('mascot', true); setCatMood('dance'); setTimeout(() => setCatMood('idle'), 700); }}><RemoteCat mood={mascotState}/></button></div></div>
         <div className="panel-tabs single"><button className="active"><Sparkles size={15}/>棋盘分析</button><span className="micro-text">{analysisBusy ? '计算中' : 'LOCAL EVALUATION'}</span></div>

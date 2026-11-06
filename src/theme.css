@@ -287,3 +287,20 @@ body {
 .ambient-background { display: none; }
 .micro-text { display: none; }
 .panel-tabs .micro-text, .analysis-heading .micro-text, .evaluation-labels small { display: none; }
+
+/* ===== 分屏 ===== */
+.split-pill { display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-soft); font-size: 12px; }
+.split-pill.on { border-color: var(--accent); color: var(--accent); background: var(--accent-soft); }
+.workspace.split-mode { grid-template-columns: var(--rail) minmax(0, 1fr) minmax(0, 1fr); }
+.workspace.split-mode .right-sidebar { display: none; }
+.mini-pane { max-width: none; padding: 0; }
+.mini-pane select { height: 32px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--ink-soft); font-size: 12px; }
+.board-footnote-inline { color: var(--muted); font-size: 11px; margin-left: auto; }
+.mini-pane .board-toolbar { display: flex; align-items: center; gap: 12px; }
+@media (max-width: 1180px) {
+  .workspace.split-mode { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+  .workspace.split-mode .left-sidebar { display: none; }
+}
+@media (max-width: 860px) {
+  .workspace.split-mode { grid-template-columns: minmax(0, 1fr); }
+}
