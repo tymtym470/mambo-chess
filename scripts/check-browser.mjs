@@ -25,7 +25,7 @@ async function assert(condition, message) {
 }
 async function smoke(page, label) {
   await page.goto(base, { waitUntil: 'domcontentloaded' });
-  await page.waitForTimeout(500);
+  await page.locator('[data-testid="board"]').waitFor({ state: 'visible', timeout: 20000 }).catch(() => {});
   await assert(await page.locator('[data-testid="board"]').isVisible(), `${label}: board is not visible`);
   const box = await page.locator('body').boundingBox();
   const viewport = page.viewportSize();

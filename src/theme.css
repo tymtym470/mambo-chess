@@ -441,3 +441,75 @@ html, body { background-color: var(--bg-0); }
 .left-sidebar .field-heading, .left-sidebar .range-labels, .left-sidebar .range-labels span, .right-sidebar .field-heading, .right-sidebar .analysis-heading { color: var(--muted); }
 .board-svg line, .board-svg path { stroke: var(--grid-line); }
 
+
+
+/* ===== 排版系统 v2：紧排无衬线标题 + 打开行高 + 等宽数字 ===== */
+:root {
+  --fs-h1: clamp(28px, 2.4vw, 38px);
+  --fs-h2: 18px;
+  --fs-h3: 15px;
+  --fs-body: 15px;
+  --fs-small: 12px;
+  --fs-micro: 11px;
+  --lh-tight: 1.2;
+  --lh-snug: 1.45;
+  --lh-body: 1.75;
+  --tr-tight: -0.015em;
+  --tr-normal: 0;
+  --tr-wide: 0.02em;
+  --measure: 62ch;
+}
+
+body { font-size: var(--fs-body); line-height: var(--lh-body); letter-spacing: var(--tr-normal); }
+
+/* 标题：无衬线、紧字距、短行高——海报感而不是文书感 */
+.workspace-heading h1,
+.board-heading h2,
+.cat-greeting h2,
+.modal-heading h2 {
+  font-family: var(--font-ui);
+  font-weight: 600;
+  letter-spacing: var(--tr-tight);
+  line-height: var(--lh-tight);
+  font-feature-settings: "palt" 1;
+}
+.workspace-heading h1 { font-size: var(--fs-h1); max-width: 20ch; }
+.board-heading h2 { font-size: var(--fs-h2); font-weight: 600; }
+.modal-heading h2 { font-size: 20px; }
+.cat-greeting h2 { font-size: var(--fs-h3); font-weight: 600; letter-spacing: var(--tr-tight); }
+
+/* 品牌字标：小一号、拉开一点、像厂牌 */
+.brand strong {
+  font-family: var(--font-ui);
+  font-size: 17px; font-weight: 600;
+  letter-spacing: var(--tr-wide);
+}
+
+/* 正文与小字：行高打开，标签全部 sentence case、不加字距 */
+.analysis-note p, .rules-copy p, .confirm-copy, .modal-body p {
+  font-size: 13px; line-height: var(--lh-body); color: var(--ink-soft);
+  max-width: var(--measure);
+}
+.sidebar-heading, .field-heading, .analysis-heading, .board-turn-status,
+.player-identity span, .game-label small, .taunt-panel-copy small {
+  font-size: var(--fs-micro); line-height: var(--lh-snug); letter-spacing: var(--tr-normal);
+}
+.game-label strong, .player-identity strong, .candidate strong { font-size: 14px; letter-spacing: var(--tr-normal); }
+.taunt-panel-copy strong { font-size: var(--fs-h3); font-weight: 550; letter-spacing: var(--tr-normal); }
+.candidate-rank, .board-footnote, .analysis-source, .lobby-stat, .lobby-meta { font-variant-numeric: tabular-nums; }
+.candidate-rank { font-family: var(--font-mono); letter-spacing: var(--tr-wide); }
+.board-footnote, .analysis-source { font-size: var(--fs-micro); letter-spacing: var(--tr-normal); }
+
+/* 按钮与控件：统一 13px、微字距 */
+.primary-button, .secondary-button, .text-button, .sound-pill, .split-pill, .api-status,
+.segmented button, .lobby-row .lobby-label, .footer-author {
+  font-size: 13px; letter-spacing: var(--tr-normal); line-height: 1;
+}
+.segmented button, .sound-pill span, .split-pill span { font-size: var(--fs-small); }
+
+/* 棋盘坐标与数字：等宽、不抢戏 */
+.board-svg text { font-variant-numeric: tabular-nums; letter-spacing: 0; }
+
+/* 小字统一到 muted，避免暗底上出现不可读的浅灰 */
+.left-sidebar small, .left-sidebar label, .left-sidebar .field-heading, .left-sidebar .field-heading span, .right-sidebar small, .right-sidebar .analysis-heading, .right-sidebar .hint-copy, .range-labels, .range-labels span { color: var(--muted); opacity: 1; }
+
