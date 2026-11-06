@@ -36,24 +36,15 @@ async function smoke(page, label) {
 
 await smoke(desktop, 'desktop');
 await smoke(mobile, 'mobile');
-await assert(await desktop.locator('.mambo-cat').count() >= 1, 'original mascot image is not referenced');
-const mascotSrc = await desktop.locator('.mambo-cat').first().getAttribute('src');
-await assert(mascotSrc && !mascotSrc.includes('CYOocz'), 'stale Tenor mascot URL is still in use');
+await assert(await desktop.locator('.mascot-orb').count() >= 1, 'mascot orb is missing');
 await assert(await desktop.locator('.taunt-panel').count() === 1, 'dynamic taunt panel is missing');
 await assert(await desktop.locator('.cat-gallery').count() === 0, 'removed cat gallery is still mounted');
-await assert((await desktop.locator('.taunt-panel-image img').getAttribute('src'))?.includes('mambo/mambo-'), 'taunt panel is not using a local mascot asset');
 
 // 关键回归：只断言 src 字符串是不够的 —— 曾经因为素材路径写成绝对路径，
 // 部署到子目录后全部 404，而 src 断言依然通过。这里检查图片是否「真的加载成功」：
 // naturalWidth > 0 才说明浏览器解析出的地址确实拿到了文件。
-const mascotLoaded = await desktop.locator('.mambo-cat').first().evaluate(img => ({
-  src: img.getAttribute('src'),
-  resolved: img.currentSrc || img.src,
-  naturalWidth: img.naturalWidth,
-  complete: img.complete,
-}));
-await assert(mascotLoaded.naturalWidth > 0,
-  `mascot image failed to load (resolved=${mascotLoaded.resolved}, naturalWidth=${mascotLoaded.naturalWidth})`);
+const orbBox = await desktop.locator('.mascot-orb').first().boundingBox();
+await assert(orbBox && orbBox.width > 8 && orbBox.height > 8, 'mascot orb has no size');
 
 // 页面上每一张图都必须真的加载出来（含表情图与图标）。
 const brokenImages = await desktop.$$eval('img', els => els

@@ -10,13 +10,12 @@ import MiniGame from './MiniGame.jsx';
 import { advance, CHESS_GLYPHS, freshGame, GAMES, LEVELS, Match, sideName, undo } from './game.js';
 import { MAMBO_TAUNT_LINE, sound } from './audio.js';
 import { readStorage, validateGame, writeStorage } from './storage.js';
-import { MAMBO_CAT_FALLBACK_URL, MAMBO_CAT_SOURCE, MAMBO_CAT_VARIANTS } from './mascot.js';
 
 
 const DEFAULT_SETTINGS = {
   mode: 'ai', level: 5, side: 1, provider: 'local', enabled: true, voice: true, volume: .55,
   music: true, numbers: false, autoAnalyze: true, refraction: true,
-  theme: 'system',   // 'system' 跟随系统 | 'light' | 'dark'
+  theme: 'dark',   // 'system' 跟随系统 | 'light' | 'dark'
 };
 const FAKE_PLAYERS = [
   { id: 'yehang', name: '夜航船', level: 3, tag: '刚下晚自习', avatar: '夜', ping: 42, win: 58, room: 'A-107' },
@@ -65,12 +64,9 @@ function IconButton({ icon: Icon, label, onClick, active, className = '', ...pro
 function Toggle({ value, onChange, label }) {
   return <button type="button" className={`toggle ${value ? 'on' : ''}`} role="switch" aria-label={label} aria-checked={value} onClick={() => onChange(!value)}><span/></button>;
 }
-function RemoteCat({ className = '', alt = '原版哈基米曼波猫', mood = 'local' }) {
-  const source = MAMBO_CAT_VARIANTS[mood] || MAMBO_CAT_VARIANTS.local;
-  return <img key={mood} className={`mambo-cat mood-${mood} ${className}`} src={source} alt={alt} title={MAMBO_CAT_SOURCE} onError={e => {
-    if (e.currentTarget.src.endsWith(MAMBO_CAT_FALLBACK_URL)) e.currentTarget.style.opacity = '.45';
-    else e.currentTarget.src = MAMBO_CAT_FALLBACK_URL;
-  }}/>;
+function RemoteCat({ className = '', alt = '曼波', mood = 'local' }) {
+  // 表情包已移除：这里只保留一颗随状态变色的光球，声音仍然照旧。
+  return <span role="img" aria-label={alt} title={alt} className={`mascot-orb mood-${mood} ${className}`}/>;
 }
 function Modal({ title, children, onClose, wide = false, className = '', footer }) {
   const ref = useRef(null), close = useRef(onClose);
@@ -235,6 +231,17 @@ export default function App() {
     setSplitSeed({ ...game, moves: [...game.moves], dead: [...(game.dead || [])] });
     setSplit(true);
   }
+  // 玻璃上的高光跟着指针走（只写两个 CSS 变量，不触发重排）
+  useEffect(() => {
+    const onMove = (event) => {
+      const root = document.documentElement;
+      root.style.setProperty('--mx', `${Math.round((event.clientX / innerWidth) * 100)}%`);
+      root.style.setProperty('--my', `${Math.round((event.clientY / innerHeight) * 100)}%`);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    return () => window.removeEventListener('pointermove', onMove);
+  }, []);
+
   function notify(message) {
     setToast(message); clearTimeout(toastTimeout.current);
     toastTimeout.current = setTimeout(() => setToast(''), 4500);
@@ -537,7 +544,7 @@ export default function App() {
       {split && <MiniGame key={splitSeed ? splitSeed.moves.length + splitSeed.kind : 'empty'} seed={splitSeed} level={settings.level} onClose={() => setSplit(false)} />}
 
       <aside className="right-sidebar">
-      <div className={`analyst-intro mascot-${mascotState}`}><div className="analyst-label"><span className="eyebrow">YOUR SIDEKICK</span><span className="small-badge">在你身边</span></div><div className="cat-greeting"><div><h2>哈基米研究所<span>✦</span></h2><p>{match.result ? resultLabel : thinking ? '等一下，猫脑正在运转。' : match.check ? '将军了，先稳住。' : '不着急，陪你想下一步。'}</p></div><button className="mascot-button" title={`${MAMBO_CAT_SOURCE} · 听一声曼波`} aria-label="听一声曼波" onClick={() => { sound.play('mascot', true); setCatMood('dance'); setTimeout(() => setCatMood('idle'), 700); }}><RemoteCat mood={mascotState}/></button></div></div>
+      <div className={`analyst-intro mascot-${mascotState}`}><div className="analyst-label"><span className="eyebrow">YOUR SIDEKICK</span><span className="small-badge">在你身边</span></div><div className="cat-greeting"><div><h2>哈基米研究所<span>✦</span></h2><p>{match.result ? resultLabel : thinking ? '等一下，猫脑正在运转。' : match.check ? '将军了，先稳住。' : '不着急，陪你想下一步。'}</p></div><button className="mascot-button" title={`${'曼波'} · 听一声曼波`} aria-label="听一声曼波" onClick={() => { sound.play('mascot', true); setCatMood('dance'); setTimeout(() => setCatMood('idle'), 700); }}><RemoteCat mood={mascotState}/></button></div></div>
         <div className="panel-tabs single"><button className="active"><Sparkles size={15}/>棋盘分析</button><span className="micro-text">{analysisBusy ? '计算中' : 'LOCAL EVALUATION'}</span></div>
         <div className="analysis-content">
           <div className="analysis-heading"><span>局势观察</span><span className="micro-text">{analysisBusy ? '计算中' : 'TACTICAL ENGINE'}</span></div>
