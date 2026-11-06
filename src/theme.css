@@ -304,3 +304,22 @@ body {
 @media (max-width: 860px) {
   .workspace.split-mode { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* 分屏两块棋盘严格等宽对齐：去掉主视图的宽度上限与居中，并把左盘多余装饰收起来 */
+.workspace.split-mode .play-area,
+.workspace.split-mode .mini-pane {
+  max-width: none;
+  width: 100%;
+  justify-self: stretch;
+  padding: 0;
+}
+.workspace.split-mode .board-heading { min-height: 40px; align-items: center; margin-bottom: 12px; }
+.workspace.split-mode .board-heading .rule-tag { display: none; }
+.workspace.split-mode .taunt-panel,
+.workspace.split-mode .player-row,
+.workspace.split-mode .board-footnote { display: none; }
+.workspace.split-mode .board-glass { padding: 16px; }
+.workspace.split-mode .board-toolbar { margin-top: 12px; }
+
+.workspace.split-mode .board-toolbar { min-height: 44px; border-radius: var(--radius-md); }
+
