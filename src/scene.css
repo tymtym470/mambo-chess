@@ -1,0 +1,142 @@
+/* Hallmark · v3.0.0 · stamp: theme custom (project system) */
+/* critique: cinematic pavilion photograph as ground; frosted squircle glass; one lantern-warm accent retained from the image */
+/* Hallmark · waive 38iii · the accent lands on the closing 。 of the hero head, once per page · it marks the room own name */
+
+:root {
+  /* 苹果式圆角：大半径 + 超椭圆（corner-shape 支持的浏览器自动变成 squircle） */
+  --sq-lg: 30px;
+  --sq-md: 22px;
+  --sq-sm: 16px;
+
+  /* 玻璃与毛边 */
+  --frost-blur: 26px;
+  --frost-sat: 155%;
+  --frost-fill: linear-gradient(180deg, rgba(255, 255, 255, .085), rgba(255, 255, 255, .028));
+  --frost-border: rgba(255, 255, 255, .16);
+  --frost-edge: rgba(255, 255, 255, .28);
+  --frost-noise: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='f'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23f)' opacity='0.6'/%3E%3C/svg%3E");
+  --scene-veil: rgba(6, 9, 11, .58);
+  --scene-veil-2: rgba(6, 9, 11, .9);
+  --lantern: #e8b878;
+}
+
+[data-theme="light"] {
+  --frost-fill: linear-gradient(180deg, rgba(255, 255, 255, .78), rgba(255, 255, 255, .55));
+  --frost-border: rgba(255, 255, 255, .85);
+  --frost-edge: rgba(255, 255, 255, .95);
+  --scene-veil: rgba(244, 240, 232, .55);
+  --scene-veil-2: rgba(238, 233, 223, .88);
+  --lantern: #a86b2c;
+}
+
+/* ---------- 场景：竹林夜亭（图二） ---------- */
+html[data-theme] body,
+html body {
+  background-color: #06090a;
+  background-image:
+    linear-gradient(180deg, rgba(6, 9, 11, .10) 0%, rgba(6, 9, 11, .30) 30%, rgba(6, 9, 11, .58) 58%, rgba(6, 9, 11, .86) 100%),
+    url('./bg/pavilion.jpg');
+  background-size: cover, cover;
+  background-position: center 58%, center 58%;
+  background-attachment: fixed, fixed;
+  background-repeat: no-repeat, no-repeat;
+}
+/* 灯下的一点暖光，衬在标题后面 */
+body::before {
+  background-image: radial-gradient(820px 480px at 50% 12%, rgba(232, 184, 120, .22), transparent 70%);
+  opacity: 1;
+  mix-blend-mode: screen;
+}
+
+/* ---------- 所有组件块：毛边玻璃 + squircle ---------- */
+.topbar,
+.left-sidebar,
+.right-sidebar,
+.board-glass,
+.taunt-panel,
+.modal,
+.candidate,
+.lobby-row,
+.board-toolbar,
+.footer-author,
+.sound-pill,
+.split-pill,
+.api-status,
+.icon-button,
+.primary-button,
+.secondary-button {
+  border-radius: var(--sq-md);
+  corner-shape: squircle;
+  background: var(--frost-fill);
+  -webkit-backdrop-filter: blur(var(--frost-blur)) saturate(var(--frost-sat));
+  backdrop-filter: blur(var(--frost-blur)) saturate(var(--frost-sat));
+  border: 1px solid var(--frost-border);
+  box-shadow: inset 0 1px 0 var(--frost-edge), 0 28px 60px -34px rgba(0, 0, 0, .95);
+}
+
+.topbar, .board-glass, .modal { border-radius: var(--sq-lg); }
+
+/* 毛边：边缘一圈颗粒，中心清透 */
+.topbar::after,
+.left-sidebar::after,
+.right-sidebar::after,
+.board-glass::after,
+.taunt-panel::after,
+.modal::after {
+  content: '';
+  position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background-image: var(--frost-noise);
+  opacity: .16;
+  mix-blend-mode: overlay;
+  -webkit-mask: radial-gradient(115% 115% at 50% 50%, transparent 52%, #000 92%);
+  mask: radial-gradient(115% 115% at 50% 50%, transparent 52%, #000 92%);
+}
+
+/* 顶栏做成图一那种悬浮导航条：更透明、更扁 */
+.topbar {
+  margin: 18px 0 4px;
+  padding: 12px 18px;
+  background: linear-gradient(180deg, rgba(20, 24, 26, .55), rgba(14, 17, 19, .45));
+  border-color: rgba(255, 255, 255, .12);
+}
+.topbar .brand strong { font-size: 15px; letter-spacing: .06em; font-weight: 600; }
+.header-actions .api-status, .header-actions .split-pill, .header-actions .sound-pill { border-radius: 999px; corner-shape: round; height: 32px; }
+
+/* 首屏：图一的排版尺度——大字、留白、下面一条细线 */
+.workspace-heading { padding: 34px 0 26px; }
+.workspace-heading h1 {
+  font-size: clamp(32px, 3.1vw, 46px);
+  font-weight: 600; letter-spacing: -.025em; line-height: 1.16;
+  max-width: 24ch;
+  text-shadow: 0 2px 40px rgba(0, 0, 0, .55);
+}
+.workspace-heading h1 > span { color: var(--lantern); }
+
+/* 棋盘：坐在灯下的石桌上 */
+.board-glass {
+  border-radius: var(--sq-lg);
+  padding: 16px;
+  background: linear-gradient(180deg, rgba(30, 26, 22, .55), rgba(16, 14, 12, .72));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .22), 0 40px 80px -40px rgba(0, 0, 0, .95), 0 0 60px -20px rgba(232, 184, 120, .18);
+}
+.board-surface {
+  border-radius: var(--sq-sm);
+  corner-shape: squircle;
+  background: linear-gradient(165deg, #1b2023 0%, #131a1d 55%, #0d1214 100%);
+  border: 1px solid rgba(255, 255, 255, .1);
+  box-shadow: inset 0 18px 40px rgba(0, 0, 0, .6), inset 0 0 0 1px rgba(255, 255, 255, .03);
+}
+
+/* 侧栏条目也统一 squircle */
+.game-option, .segmented, .field-heading, .cat-greeting { border-radius: var(--sq-sm); corner-shape: squircle; }
+.game-option.active { border-radius: var(--sq-sm); corner-shape: squircle; }
+
+/* 弹窗遮罩加深，保证毛玻璃读出层次 */
+.modal::backdrop { background: rgba(3, 5, 6, .72); }
+
+/* 关键：老样式给 .app-shell 铺了不透明底，会盖住场景图 */
+html[data-theme] .app-shell,
+html .app-shell {
+  background-color: transparent;
+  background-image: none;
+}
